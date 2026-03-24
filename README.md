@@ -2,7 +2,7 @@
 
 CLI tools for quick `dc+sd-jwt` credential issuance, holding, and OpenID4VP presentation.
 
-Built for simple, scriptable credential flows -- primarily created as a PoC for making wallet operations CLI-consumable so they can be driven by AI agents like [OpenClaw](https://github.com/anthropics/openclaw) 🦞.
+Built for simple, scriptable credential flows -- primarily created as a PoC for making wallet operations CLI-consumable so they can be driven by AI agents like [OpenClaw](https://openclaw.ai/) 🦞.
 
 ## Packages
 
