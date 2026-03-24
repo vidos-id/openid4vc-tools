@@ -10,9 +10,12 @@
         "@sd-jwt/hash": "^0.19.0",
         "@sd-jwt/present": "^0.19.0",
         "@sd-jwt/sd-jwt-vc": "^0.19.0",
+        "cli-common": "workspace:*",
         "commander": "^14.0.3",
         "dcql": "^3.0.0",
+        "issuer": "workspace:*",
         "jose": "^6.2.2",
+        "wallet": "workspace:*",
         "zod": "^4.3.6",
       },
       "devDependencies": {
