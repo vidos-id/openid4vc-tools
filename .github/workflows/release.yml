@@ -31,11 +31,11 @@ jobs:
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}
         run: |
-          bun publish --cwd packages/cli-common
-          bun publish --cwd packages/wallet
-          bun publish --cwd packages/issuer
-          bun publish --cwd packages/wallet-cli
-          bun publish --cwd packages/issuer-cli
+          bun publish --cwd packages/cli-common --registry=https://npm.pkg.github.com
+          bun publish --cwd packages/wallet --registry=https://npm.pkg.github.com
+          bun publish --cwd packages/issuer --registry=https://npm.pkg.github.com
+          bun publish --cwd packages/wallet-cli --registry=https://npm.pkg.github.com
+          bun publish --cwd packages/issuer-cli --registry=https://npm.pkg.github.com
 
       - name: Prepare release artifacts
         run: |
