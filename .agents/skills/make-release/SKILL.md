@@ -23,6 +23,22 @@ Run `git log --oneline` from the last tag to HEAD to see what's changed. Look at
 
 Compare this against the version bump implied by the current version in `package.json` relative to the last released tag. If the changes suggest a bigger bump is needed (e.g., there's a breaking change but the version only bumped the patch), flag this to the developer and ask for confirmation before proceeding.
 
+### 2.1 Generate AI release notes
+
+Read the full commit messages (not just oneline) for all commits since the last tag:
+
+```bash
+git log <last_tag>..HEAD --format="%s%n%b---" --no-merges
+```
+
+Then generate a human-readable changelog overview in markdown format with sections for:
+- **Highlights** (most important changes, 2-4 bullet points)
+- **New Features** (if any minor-level changes)
+- **Bug Fixes** (if any patch-level fixes)
+- **Other Changes** (docs, refactors, chores, dependency updates)
+
+Write the generated notes to `.release_notes.md` in the repo root. These will be used by the release workflow.
+
 ### 3. Pre-release checks
 
 Before tagging, verify the codebase is healthy:
