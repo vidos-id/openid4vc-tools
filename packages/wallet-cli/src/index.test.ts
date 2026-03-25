@@ -7,7 +7,7 @@ import {
 	issueDemoCredential,
 	type QueryCredentialMatches,
 	Wallet,
-} from "wallet";
+} from "@vidos-id/wallet";
 import {
 	importCredentialAction,
 	initWalletAction,

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { Wallet } from "wallet";
+import { Wallet } from "@vidos-id/wallet";
 import { initOptionsSchema } from "../schemas.ts";
 import { FileSystemWalletStorage } from "../storage.ts";
 

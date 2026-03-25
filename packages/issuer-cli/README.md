@@ -1,12 +1,42 @@
-# issuer-cli
+# @vidos-id/issuer-cli
 
-CLI for `dc+sd-jwt` credential issuance. Wraps the [`issuer`](../issuer/) library.
+CLI for `dc+sd-jwt` credential issuance. Wraps the [`@vidos-id/issuer`](../issuer/) library.
 
 For the full issue-hold-present flow, see the [root README](../../).
 
 ## Install
 
-Download the latest GitHub Release artifact and make it executable:
+From GitHub Packages, configure the consuming environment:
+
+```ini
+@vidos-id:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Then run with Bun:
+
+```bash
+# bunx uses the same scoped registry config as bun install
+bunx @vidos-id/issuer-cli --help
+```
+
+You can also install it first with your preferred package manager:
+
+```bash
+# bun
+bun add -D @vidos-id/issuer-cli
+
+# npm
+npm install -D @vidos-id/issuer-cli
+
+# pnpm
+pnpm add -D @vidos-id/issuer-cli
+
+# yarn
+yarn add -D @vidos-id/issuer-cli
+```
+
+Or download the latest GitHub Release artifact and make it executable:
 
 ```bash
 curl -L -o issuer-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/issuer-cli.js
@@ -144,7 +174,7 @@ Options:
 - `issue` writes to `--issuer-dir` and fails if the credential file already exists
 - without `--holder-key-file` or `--holder-key`, issuance is unbound (no `cnf` claim)
 - reserved protocol claims (`vct`, `iss`) are issuer-controlled
-- credential output goes to `--issuer-dir`; use [`wallet-cli import`](../wallet-cli/) to bring it into a wallet
+- credential output goes to `--issuer-dir`; use [`@vidos-id/wallet-cli import`](../wallet-cli/) to bring it into a wallet
 - for remote inputs, use `--claims "$(curl -fsSL <raw-url>)"` instead of `--claims-file`
 
 ## Test

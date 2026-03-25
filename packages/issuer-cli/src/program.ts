@@ -1,4 +1,4 @@
-import { printResult, setVerbose, verbose } from "cli-common";
+import { printResult, setVerbose, verbose } from "@vidos-id/cli-common";
 import { Command } from "commander";
 import { generateTrustMaterialAction } from "./actions/generate-trust-material.ts";
 import { importTrustMaterialAction } from "./actions/import-trust-material.ts";

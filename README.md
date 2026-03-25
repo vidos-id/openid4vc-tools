@@ -8,18 +8,67 @@ Built for simple, scriptable credential flows -- primarily created as a PoC for 
 
 | Package | Description |
 |---------|-------------|
-| [`issuer-cli`](packages/issuer-cli/) | Issue credentials and manage issuer key material |
-| [`wallet-cli`](packages/wallet-cli/) | Hold credentials and create OpenID4VP presentations |
-| [`issuer`](packages/issuer/) | Issuer library (used by issuer-cli) |
-| [`wallet`](packages/wallet/) | Wallet library (used by wallet-cli) |
+| [`@vidos-id/issuer-cli`](packages/issuer-cli/) | Issue credentials and manage issuer key material |
+| [`@vidos-id/wallet-cli`](packages/wallet-cli/) | Hold credentials and create OpenID4VP presentations |
+| [`@vidos-id/issuer`](packages/issuer/) | Issuer library used by the CLI and Bun consumers |
+| [`@vidos-id/wallet`](packages/wallet/) | Wallet library used by the CLI and Bun consumers |
+| [`@vidos-id/cli-common`](packages/cli-common/) | Shared CLI utilities published for the CLI packages |
 
 ## Install
 
-Release artifacts are published on GitHub Releases as Bun-executable single-file CLIs.
+Library packages and CLI packages are published to GitHub Packages under the `@vidos-id` scope. Release artifacts are also published on GitHub Releases as Bun-executable single-file CLIs.
 
 Requirements:
 
 - [Bun](https://bun.sh/) installed
+
+### GitHub Packages
+
+Configure the `@vidos-id` scope in the consuming repo or your user config.
+
+With `.npmrc`:
+
+```ini
+@vidos-id:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+With `bunfig.toml`:
+
+```toml
+[install.scopes]
+"@vidos-id" = { url = "https://npm.pkg.github.com", token = "$GITHUB_PACKAGES_TOKEN" }
+```
+
+Install the libraries with your preferred package manager:
+
+```bash
+# bun
+bun add @vidos-id/wallet @vidos-id/issuer
+
+# npm
+npm install @vidos-id/wallet @vidos-id/issuer
+
+# pnpm
+pnpm add @vidos-id/wallet @vidos-id/issuer
+
+# yarn
+yarn add @vidos-id/wallet @vidos-id/issuer
+```
+
+Run the CLIs from the registry:
+
+```bash
+# bunx uses the same scoped registry config as bun install
+bunx @vidos-id/wallet-cli --help
+bunx @vidos-id/issuer-cli --help
+```
+
+If `bunx` cannot resolve the scope, add the same `@vidos-id` registry mapping to `.npmrc` or `bunfig.toml`; no extra bunx-only config is needed.
+
+These published packages currently ship raw TypeScript sources, so they are intended for Bun-based execution/consumption. GitHub Packages still requires a token for installs, even when the packages are public.
+
+### GitHub Releases
 
 Download the latest release assets:
 
@@ -47,7 +96,7 @@ mv wallet-cli ~/.local/bin/wallet-cli
 mv issuer-cli ~/.local/bin/issuer-cli
 ```
 
-These artifacts are built for Bun, so they are not directly consumable via `npx` and are not currently published as npm packages for `bunx`.
+These artifacts are built for Bun and do not require GitHub Packages registry configuration.
 
 Note: the GitHub Release assets only contain the CLIs, not the `examples/` directory. When using the installed CLIs, either supply your own local files or fetch example inputs from the repo's raw GitHub URLs.
 
@@ -102,7 +151,7 @@ Or from an `openid4vp://` authorization URL:
   --request 'openid4vp://authorize?client_id=https%3A%2F%2Fverifier.example&nonce=n-1&response_type=vp_token&dcql_query=...'
 ```
 
-See [`issuer-cli`](packages/issuer-cli/) and [`wallet-cli`](packages/wallet-cli/) for full command reference.
+See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](packages/wallet-cli/) for full command reference.
 
 ## Algorithms
 

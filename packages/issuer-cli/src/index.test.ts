@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { generateIssuerTrustMaterial } from "issuer";
+import { generateIssuerTrustMaterial } from "@vidos-id/issuer";
 import { initWalletAction } from "../../wallet-cli/src/index.ts";
 import { issueCredentialAction } from "./index.ts";
 

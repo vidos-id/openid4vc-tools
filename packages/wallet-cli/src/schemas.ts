@@ -1,4 +1,4 @@
-import { jsonOutputFormatSchema, outputFormatSchema } from "cli-common";
+import { jsonOutputFormatSchema, outputFormatSchema } from "@vidos-id/cli-common";
 import { z } from "zod";
 
 export { jsonOutputFormatSchema, outputFormatSchema };

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { verbose } from "cli-common";
+import { verbose } from "@vidos-id/cli-common";
 import type { z } from "zod";
 import { resolveIssuerDirPaths } from "./paths.ts";
 import {

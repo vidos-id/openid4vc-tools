@@ -1,6 +1,6 @@
 import { access, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createIssuer } from "issuer";
+import { createIssuer } from "@vidos-id/issuer";
 import { resolveIssuerConfig } from "../config.ts";
 import { parseHolderPublicJwk, readHolderPublicJwk } from "../holder-key.ts";
 import { issueOptionsSchema } from "../schemas.ts";

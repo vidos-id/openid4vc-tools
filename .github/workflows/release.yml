@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -20,7 +21,21 @@ jobs:
 
       - run: bun install
 
+      - run: bun run check-types
+
+      - run: bun test
+
       - run: bun run build
+
+      - name: Publish GitHub Packages
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.GITHUB_PACKAGES_TOKEN }}
+        run: |
+          bun publish --cwd packages/cli-common
+          bun publish --cwd packages/wallet
+          bun publish --cwd packages/issuer
+          bun publish --cwd packages/wallet-cli
+          bun publish --cwd packages/issuer-cli
 
       - name: Prepare release artifacts
         run: |

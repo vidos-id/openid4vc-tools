@@ -1,8 +1,35 @@
-# wallet
+# @vidos-id/wallet
 
 Minimal demo wallet library for importing, storing, and presenting `dc+sd-jwt` credentials.
 
-For the CLI wrapper, see [`wallet-cli`](../wallet-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/wallet-cli/src/index.ts`.
+For the CLI wrapper, see [`@vidos-id/wallet-cli`](../wallet-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/wallet-cli/src/index.ts`.
+
+## Install
+
+Configure GitHub Packages in the consuming repo:
+
+```ini
+@vidos-id:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Install with your preferred package manager:
+
+```bash
+# bun
+bun add @vidos-id/wallet
+
+# npm
+npm install @vidos-id/wallet
+
+# pnpm
+pnpm add @vidos-id/wallet
+
+# yarn
+yarn add @vidos-id/wallet
+```
+
+This package is currently published as raw TypeScript and is intended for Bun-based consumers.
 
 ## Features
 
@@ -19,7 +46,7 @@ For the CLI wrapper, see [`wallet-cli`](../wallet-cli/). For the installed CLI f
 ## Example
 
 ```ts
-import { InMemoryWalletStorage, Wallet } from "wallet";
+import { InMemoryWalletStorage, Wallet } from "@vidos-id/wallet";
 
 const wallet = new Wallet(new InMemoryWalletStorage());
 
@@ -63,7 +90,7 @@ Supported `openid4vp://` subset:
 
 ## See also
 
-- [`issuer`](../issuer/) - issuer library for credential issuance
+- [`@vidos-id/issuer`](../issuer/) - issuer library for credential issuance
 - [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) - full programmatic flow using both libraries
 
 ## Test

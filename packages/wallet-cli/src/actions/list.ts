@@ -1,4 +1,4 @@
-import { Wallet } from "wallet";
+import { Wallet } from "@vidos-id/wallet";
 import { listOptionsSchema } from "../schemas.ts";
 import { FileSystemWalletStorage } from "../storage.ts";
 

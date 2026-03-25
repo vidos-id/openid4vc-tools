@@ -1,5 +1,5 @@
-import { writeOptionalFile } from "cli-common";
-import { generateIssuerTrustMaterial } from "issuer";
+import { writeOptionalFile } from "@vidos-id/cli-common";
+import { generateIssuerTrustMaterial } from "@vidos-id/issuer";
 import { resolveIssuerDirPaths } from "../paths.ts";
 import { trustMaterialOptionsSchema } from "../schemas.ts";
 

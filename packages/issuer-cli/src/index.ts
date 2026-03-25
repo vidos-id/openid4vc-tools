@@ -4,7 +4,7 @@ import {
 	handleCliError,
 	readPackageVersion,
 	resolvePackageJsonPath,
-} from "cli-common";
+} from "@vidos-id/cli-common";
 import { createProgram } from "./program.ts";
 
 export { generateTrustMaterialAction } from "./actions/generate-trust-material.ts";

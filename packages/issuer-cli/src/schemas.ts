@@ -1,10 +1,10 @@
-import { jsonOutputFormatSchema, outputFormatSchema } from "cli-common";
+import { jsonOutputFormatSchema, outputFormatSchema } from "@vidos-id/cli-common";
 import {
 	claimSetSchema,
 	issuerConfigSchema,
 	jwkSchema,
 	signingAlgSchema,
-} from "issuer";
+} from "@vidos-id/issuer";
 import { z } from "zod";
 
 export {

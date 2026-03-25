@@ -1,12 +1,42 @@
-# wallet-cli
+# @vidos-id/wallet-cli
 
-CLI for `dc+sd-jwt` credential holding and OpenID4VP presentation. Wraps the [`wallet`](../wallet/) library.
+CLI for `dc+sd-jwt` credential holding and OpenID4VP presentation. Wraps the [`@vidos-id/wallet`](../wallet/) library.
 
 For the full issue-hold-present flow, see the [root README](../../).
 
 ## Install
 
-Download the latest GitHub Release artifact and make it executable:
+From GitHub Packages, configure the consuming environment:
+
+```ini
+@vidos-id:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Then run with Bun:
+
+```bash
+# bunx uses the same scoped registry config as bun install
+bunx @vidos-id/wallet-cli --help
+```
+
+You can also install it first with your preferred package manager:
+
+```bash
+# bun
+bun add -D @vidos-id/wallet-cli
+
+# npm
+npm install -D @vidos-id/wallet-cli
+
+# pnpm
+pnpm add -D @vidos-id/wallet-cli
+
+# yarn
+yarn add -D @vidos-id/wallet-cli
+```
+
+Or download the latest GitHub Release artifact and make it executable:
 
 ```bash
 curl -L -o wallet-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/wallet-cli.js
@@ -141,7 +171,7 @@ Options:
 - `present` auto-submits `direct_post` and `direct_post.jwt` responses unless `--dry-run` is set
 - when multiple credentials match a query, `present` prompts interactively in a TTY or returns an error with a `--credential-id` suggestion in non-TTY environments
 - only by-value DCQL requests are supported
-- credentials are issued with [`issuer-cli`](../issuer-cli/)
+- credentials are issued with [`@vidos-id/issuer-cli`](../issuer-cli/)
 - for remote inputs, use `--request "$(curl -fsSL <raw-url>)"` instead of relying on a local example file
 
 ## Test

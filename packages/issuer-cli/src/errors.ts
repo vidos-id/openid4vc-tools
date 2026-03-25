@@ -1,1 +1,1 @@
-export { formatZodError, handleCliError } from "cli-common";
+export { formatZodError, handleCliError } from "@vidos-id/cli-common";

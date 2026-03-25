@@ -6,7 +6,7 @@ import {
 	type StoredCredentialRecord,
 	StoredCredentialRecordSchema,
 	type WalletStorage,
-} from "wallet";
+} from "@vidos-id/wallet";
 import { z } from "zod";
 
 const walletManifestSchema = z.object({

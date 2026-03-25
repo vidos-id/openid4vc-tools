@@ -5,7 +5,7 @@ description: Create a versioned release with GitHub tag and release artifacts. U
 
 # Release
 
-This skill walks through creating a versioned GitHub release for this monorepo. The release workflow (`.github/workflows/release.yml`) triggers on `v*` tags and produces bundled CLI artifacts (`wallet-cli.js`, `issuer-cli.js`) attached to a GitHub Release.
+This skill walks through creating a versioned GitHub release for this monorepo. The release workflow (`.github/workflows/release.yml`) triggers on `v*` tags, publishes the scoped `@vidos-id/*` packages to GitHub Packages with `bun publish`, and produces bundled CLI artifacts (`wallet-cli.js`, `issuer-cli.js`) attached to a GitHub Release.
 
 ## The release flow
 
@@ -42,6 +42,14 @@ bun dist/issuer-cli/index.js --help
 
 If any of these fail, stop and fix the issues before releasing.
 
+Before releasing, confirm the package metadata is publishable:
+
+- package names are scoped to `@vidos-id/*`
+- every published package has the same version
+- package publishing still works with Bun's `workspace:*` resolution for local dependencies
+- each package points `publishConfig.registry` to `https://npm.pkg.github.com`
+- each package includes the repo URL in its `repository` field
+
 ### 4. Ensure versions are consistent
 
 All `package.json` files in the monorepo should have the same version. Check:
@@ -63,7 +71,7 @@ git tag v<version>
 git push origin v<version>
 ```
 
-### 6. Verify the release
+### 6. Verify the release and package publish
 
 Check that the GitHub Actions workflow started and completed:
 
@@ -78,6 +86,20 @@ gh release view v<version>
 ```
 
 You should see both `wallet-cli.js` and `issuer-cli.js` listed as assets.
+
+Also verify the GitHub Packages publish succeeded for:
+
+- `@vidos-id/cli-common`
+- `@vidos-id/issuer`
+- `@vidos-id/issuer-cli`
+- `@vidos-id/wallet`
+- `@vidos-id/wallet-cli`
+
+Important notes for this repository:
+
+- packages are intentionally published as raw TypeScript right now, not prebuilt JS
+- packages are published via Bun using the `GITHUB_PACKAGES_TOKEN` secret exposed as `NPM_CONFIG_TOKEN` in CI
+- consumers still need GitHub Packages auth and an `.npmrc` or `bunfig.toml` entry for the `@vidos-id` scope, even when the packages are public
 
 ### 7. Version bump decision
 

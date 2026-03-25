@@ -1,4 +1,4 @@
-import { printResult, setVerbose, verbose } from "cli-common";
+import { printResult, setVerbose, verbose } from "@vidos-id/cli-common";
 import { Command } from "commander";
 import { importCredentialAction } from "./actions/import.ts";
 import { initWalletAction } from "./actions/init.ts";

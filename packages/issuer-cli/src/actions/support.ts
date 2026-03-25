@@ -1,4 +1,4 @@
-import { readTextInput } from "cli-common";
+import { readTextInput } from "@vidos-id/cli-common";
 import { claimSetSchema } from "../schemas.ts";
 
 export async function resolveClaims(claims?: string, claimsFile?: string) {

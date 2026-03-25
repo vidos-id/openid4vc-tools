@@ -1,1 +1,1 @@
-export { printResult, readTextInput, writeOptionalFile } from "cli-common";
+export { printResult, readTextInput, writeOptionalFile } from "@vidos-id/cli-common";

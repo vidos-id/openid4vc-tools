@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { jwkSchema } from "issuer";
+import { jwkSchema } from "@vidos-id/issuer";
 import { z } from "zod";
 
 const holderKeyFileSchema = z.object({

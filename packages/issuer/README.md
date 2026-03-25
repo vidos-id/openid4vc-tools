@@ -1,8 +1,35 @@
-# issuer
+# @vidos-id/issuer
 
 Minimal demo issuer library for holder-bound `dc+sd-jwt` credentials.
 
-For the CLI wrapper, see [`issuer-cli`](../issuer-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/issuer-cli/src/index.ts`.
+For the CLI wrapper, see [`@vidos-id/issuer-cli`](../issuer-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/issuer-cli/src/index.ts`.
+
+## Install
+
+Configure GitHub Packages in the consuming repo:
+
+```ini
+@vidos-id:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
+```
+
+Install with your preferred package manager:
+
+```bash
+# bun
+bun add @vidos-id/issuer
+
+# npm
+npm install @vidos-id/issuer
+
+# pnpm
+pnpm add @vidos-id/issuer
+
+# yarn
+yarn add @vidos-id/issuer
+```
+
+This package is currently published as raw TypeScript and is intended for Bun-based consumers.
 
 ## Features
 
@@ -25,7 +52,7 @@ This package implements a deliberately small internal/demo subset of those specs
 ## Example
 
 ```ts
-import { createIssuer, generateIssuerTrustMaterial } from "issuer";
+import { createIssuer, generateIssuerTrustMaterial } from "@vidos-id/issuer";
 
 // Default algorithm is EdDSA; pass "ES256" or "ES384" for alternatives
 const trust = await generateIssuerTrustMaterial("ES256");
@@ -51,7 +78,7 @@ const offer = issuer.createCredentialOffer({
 });
 ```
 
-For holder binding, the wallet provides its public JWK via a proof JWT -- see the [`wallet`](../wallet/) library and [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) for the full flow.
+For holder binding, the wallet provides its public JWK via a proof JWT -- see the [`@vidos-id/wallet`](../wallet/) library and [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) for the full flow.
 
 ## Test
 

@@ -7,9 +7,9 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { verbose, writeOptionalFile } from "cli-common";
-import type { SigningAlg } from "issuer";
-import { jwkSchema, signingAlgSchema } from "issuer";
+import { verbose, writeOptionalFile } from "@vidos-id/cli-common";
+import type { SigningAlg } from "@vidos-id/issuer";
+import { jwkSchema, signingAlgSchema } from "@vidos-id/issuer";
 import type { JWK } from "jose";
 import {
 	calculateJwkThumbprint,

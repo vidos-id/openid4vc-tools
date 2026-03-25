@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline/promises";
-import { verbose } from "cli-common";
+import { verbose } from "@vidos-id/cli-common";
 import {
 	createOpenId4VpAuthorizationResponse,
 	type OpenId4VpRequestInput,
@@ -9,7 +9,7 @@ import {
 	submitOpenId4VpAuthorizationResponse,
 	Wallet,
 	type WalletStorage,
-} from "wallet";
+} from "@vidos-id/wallet";
 import { presentOptionsSchema } from "../schemas.ts";
 import { SelectedCredentialStorage } from "../selected-storage.ts";
 import { FileSystemWalletStorage } from "../storage.ts";

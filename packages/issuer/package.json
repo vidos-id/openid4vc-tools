@@ -1,6 +1,11 @@
 {
-	"name": "issuer",
+	"name": "@vidos-id/issuer",
+	"description": "Issuer library for holder-bound dc+sd-jwt credentials.",
 	"version": "0.1.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vidos-id/oid4vp-cli-utils.git"
+	},
 	"type": "module",
 	"scripts": {
 		"test": "bun test"
@@ -10,6 +15,10 @@
 	"types": "./src/index.ts",
 	"exports": {
 		".": "./src/index.ts"
+	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com",
+		"access": "public"
 	},
 	"dependencies": {
 		"@sd-jwt/core": "^0.19.0",
