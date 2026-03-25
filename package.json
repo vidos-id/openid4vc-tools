@@ -14,7 +14,7 @@
 		"typescript": "^5.9.3"
 	},
 	"scripts": {
-		"build": "bun build packages/wallet-cli/src/index.ts --target=bun --outdir=dist/wallet-cli --entry-naming=[name].js && bun build packages/issuer-cli/src/index.ts --target=bun --outdir=dist/issuer-cli --entry-naming=[name].js",
+		"build": "bun run --filter '@vidos-id/wallet-cli' --filter '@vidos-id/issuer-cli' --sequential build",
 		"check-types": "tsc --noEmit --project tsconfig.json",
 		"demo:e2e": "bun scripts/demo-e2e.ts",
 		"test": "bun test",

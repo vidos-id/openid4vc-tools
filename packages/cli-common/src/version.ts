@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
+declare const __CLI_VERSION__: string | undefined;
+
 export async function readPackageVersion(
 	packageJsonPath: string,
 ): Promise<string> {
@@ -12,6 +14,16 @@ export async function readPackageVersion(
 	} catch {
 		return "0.0.0";
 	}
+}
+
+export async function resolveCliVersion(
+	packageJsonPath: string,
+): Promise<string> {
+	if (typeof __CLI_VERSION__ === "string" && __CLI_VERSION__.length > 0) {
+		return __CLI_VERSION__;
+	}
+
+	return readPackageVersion(packageJsonPath);
 }
 
 /**

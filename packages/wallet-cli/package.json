@@ -17,6 +17,9 @@
 		"registry": "https://npm.pkg.github.com",
 		"access": "public"
 	},
+	"scripts": {
+		"build": "bun build src/index.ts --target=bun --outdir=../../dist/wallet-cli --entry-naming=[name].js --define __CLI_VERSION__='\"'$npm_package_version'\"'"
+	},
 	"dependencies": {
 		"@vidos-id/cli-common": "workspace:*",
 		"commander": "^14.0.3",

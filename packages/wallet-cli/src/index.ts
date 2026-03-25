@@ -2,7 +2,7 @@
 
 import {
 	handleCliError,
-	readPackageVersion,
+	resolveCliVersion,
 	resolvePackageJsonPath,
 } from "@vidos-id/cli-common";
 import { createProgram } from "./program.ts";
@@ -15,7 +15,7 @@ export { showCredentialAction } from "./actions/show.ts";
 export { createProgram };
 
 export async function runCli(argv = process.argv): Promise<void> {
-	const version = await readPackageVersion(
+	const version = await resolveCliVersion(
 		resolvePackageJsonPath(import.meta.url),
 	);
 	const program = createProgram(version);
