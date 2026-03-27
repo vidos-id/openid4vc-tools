@@ -37,6 +37,7 @@ This package is currently published as raw TypeScript and is intended for Bun-ba
 - holder-key import from JWK
 - pluggable storage interface
 - issuer JWK/JWKS credential verification (optional)
+- direct OID4VCI receipt from credential offers
 - DCQL matching with `dcql`
 - `openid4vp://` authorization URL parsing for by-value DCQL requests
 - selective disclosure presentation building
@@ -46,7 +47,11 @@ This package is currently published as raw TypeScript and is intended for Bun-ba
 ## Example
 
 ```ts
-import { InMemoryWalletStorage, Wallet } from "@vidos-id/wallet";
+import {
+  InMemoryWalletStorage,
+  Wallet,
+  receiveCredentialFromOffer,
+} from "@vidos-id/wallet";
 
 const wallet = new Wallet(new InMemoryWalletStorage());
 
@@ -63,6 +68,12 @@ await wallet.importCredential({
   credential: "eyJ...",
   issuer: { issuer: "https://issuer.example", jwks: { keys: [/* ... */] } },
 });
+
+// Receive directly from a minimal OID4VCI credential offer
+await receiveCredentialFromOffer(
+  wallet,
+  'openid-credential-offer://?credential_offer=...'
+);
 
 // Create a presentation from a DCQL request
 const presentation = await wallet.createPresentation({
@@ -87,6 +98,12 @@ Supported `openid4vp://` subset:
 - by-value only
 - requires `client_id`, `nonce`, and `dcql_query`
 - rejects `request`, `request_uri`, `scope`, and Presentation Exchange input
+
+Supported OID4VCI subset:
+- by-value credential offers only
+- pre-authorized-code flow only
+- JWT proof only
+- single `dc+sd-jwt` credential request + import
 
 ## See also
 

@@ -98,6 +98,29 @@ export async function createKbJwt(input: {
 		.sign(privateKey);
 }
 
+export async function createOpenId4VciProofJwt(input: {
+	holderPrivateJwk: JWK;
+	holderPublicJwk: JWK;
+	aud: string;
+	nonce: string;
+	alg?: string;
+}): Promise<string> {
+	const alg = input.alg ?? HOLDER_KEY_ALG;
+	const privateKey = await importPrivateKey(input.holderPrivateJwk, alg);
+
+	return new SignJWT({
+		aud: input.aud,
+		nonce: input.nonce,
+		iat: Math.floor(Date.now() / 1000),
+	})
+		.setProtectedHeader({
+			alg,
+			typ: "openid4vci-proof+jwt",
+			jwk: input.holderPublicJwk,
+		})
+		.sign(privateKey);
+}
+
 export async function issueDemoCredential(input: {
 	issuer: string;
 	issuerPrivateJwk: JWK;

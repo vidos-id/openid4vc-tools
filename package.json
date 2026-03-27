@@ -1,6 +1,6 @@
 {
 	"name": "oid4vp-cli-utils",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/vidos-id/oid4vp-cli-utils.git"
@@ -17,6 +17,7 @@
 		"build": "bun run --filter '@vidos-id/wallet-cli' --filter '@vidos-id/issuer-cli' --sequential build",
 		"check-types": "tsc --noEmit --project tsconfig.json",
 		"demo:e2e": "bun scripts/demo-e2e.ts",
+		"demo:oid4vci": "bun scripts/demo-oid4vci-e2e.ts",
 		"test": "bun test",
 		"lint": "biome check --write ."
 	},

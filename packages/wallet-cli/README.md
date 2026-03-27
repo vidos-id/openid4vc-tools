@@ -2,6 +2,8 @@
 
 CLI for `dc+sd-jwt` credential holding and OpenID4VP presentation. Wraps the [`@vidos-id/wallet`](../wallet/) library.
 
+It also supports a minimal direct OpenID4VCI receipt flow via credential offers.
+
 For the full issue-hold-present flow, see the [root README](../../).
 
 ## Install
@@ -96,6 +98,28 @@ Options:
 - `--credential <value>` - inline credential text (compact `dc+sd-jwt`)
 - `--credential-file <file>` - path to a credential file
 
+`import` remains a local credential-blob import command only; it does not resolve credential offers.
+
+### `receive`
+
+Receive and store a credential from a minimal OpenID4VCI credential offer.
+
+```bash
+# From an openid-credential-offer URI
+wallet-cli receive \
+  --wallet-dir ./my-wallet \
+  --offer 'openid-credential-offer://?credential_offer=...'
+
+# From inline credential-offer JSON
+wallet-cli receive \
+  --wallet-dir ./my-wallet \
+  --offer '{"credential_issuer":"https://issuer.example",...}'
+```
+
+Options:
+- `--wallet-dir <dir>` (required) - path to the wallet directory
+- `--offer <value>` (required) - credential offer JSON or `openid-credential-offer://` URI
+
 ### `list`
 
 List stored credentials.
@@ -171,6 +195,7 @@ Options:
 - `present` auto-submits `direct_post` and `direct_post.jwt` responses unless `--dry-run` is set
 - when multiple credentials match a query, `present` prompts interactively in a TTY or returns an error with a `--credential-id` suggestion in non-TTY environments
 - only by-value DCQL requests are supported
+- `receive` supports only the minimal OID4VCI subset: by-value offers, pre-authorized-code, JWT proof, and single `dc+sd-jwt` issuance
 - credentials are issued with [`@vidos-id/issuer-cli`](../issuer-cli/)
 - for remote inputs, use `--request "$(curl -fsSL <raw-url>)"` instead of relying on a local example file
 

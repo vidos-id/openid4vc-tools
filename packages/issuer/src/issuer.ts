@@ -11,12 +11,18 @@ import {
 import { z } from "zod";
 import { IssuerError } from "./errors.ts";
 import {
+	createIssuerMetadata,
+	serializeCredentialOfferUri,
+} from "./openid4vci.ts";
+import {
 	type AccessTokenRecord,
 	type ClaimSet,
 	type CreateCredentialOfferInput,
 	type CreatePreAuthorizedGrantInput,
 	createCredentialOfferInputSchema,
 	createPreAuthorizedGrantInputSchema,
+	credentialOfferSchema,
+	credentialResponseSchema,
 	type ExchangePreAuthorizedCodeInput,
 	exchangePreAuthorizedCodeInputSchema,
 	type IssueCredentialInput,
@@ -24,6 +30,7 @@ import {
 	type IssuerConfigInput,
 	issueCredentialInputSchema,
 	issuerConfigSchema,
+	issuerMetadataSchema,
 	jwkSchema,
 	type NonceRecord,
 	type PreAuthorizedGrantRecord,
@@ -176,45 +183,7 @@ export class DemoIssuer {
 	}
 
 	getMetadata() {
-		const tokenEndpoint =
-			this.config.endpoints?.token ??
-			new URL("/token", this.config.issuer).toString();
-		const credentialEndpoint =
-			this.config.endpoints?.credential ??
-			new URL("/credential", this.config.issuer).toString();
-		const nonceEndpoint =
-			this.config.endpoints?.nonce ??
-			new URL("/nonce", this.config.issuer).toString();
-
-		return {
-			credential_issuer: this.config.issuer,
-			token_endpoint: tokenEndpoint,
-			credential_endpoint: credentialEndpoint,
-			nonce_endpoint: nonceEndpoint,
-			jwks: this.getJwks(),
-			credential_configurations_supported: Object.fromEntries(
-				Object.entries(this.config.credentialConfigurationsSupported).map(
-					([id, entry]) => [
-						id,
-						{
-							format: entry.format,
-							vct: entry.vct,
-							scope: entry.scope,
-							proof_types_supported: {
-								jwt: {
-									proof_signing_alg_values_supported:
-										entry.proof_signing_alg_values_supported,
-								},
-							},
-							cryptographic_binding_methods_supported: ["jwk"],
-							credential_signing_alg_values_supported: [
-								this.config.signingKey.alg,
-							],
-						},
-					],
-				),
-			),
-		};
+		return issuerMetadataSchema.parse(createIssuerMetadata(this.config));
 	}
 
 	createPreAuthorizedGrant(input: CreatePreAuthorizedGrantInput) {
@@ -252,7 +221,7 @@ export class DemoIssuer {
 	createCredentialOffer(input: CreateCredentialOfferInput) {
 		const parsed = createCredentialOfferInputSchema.parse(input);
 		const grant = this.createPreAuthorizedGrant(parsed);
-		return {
+		const offer = credentialOfferSchema.parse({
 			credential_issuer: this.config.issuer,
 			credential_configuration_ids: [grant.credential_configuration_id],
 			grants: {
@@ -260,8 +229,15 @@ export class DemoIssuer {
 					"pre-authorized_code": grant.preAuthorizedCode,
 				},
 			},
+		});
+		return {
+			...offer,
 			preAuthorizedGrant: grant.preAuthorizedGrant,
 		};
+	}
+
+	createCredentialOfferUri(input: CreateCredentialOfferInput) {
+		return serializeCredentialOfferUri(this.createCredentialOffer(input));
 	}
 
 	exchangePreAuthorizedCode(input: ExchangePreAuthorizedCodeInput) {
@@ -476,9 +452,12 @@ export class DemoIssuer {
 			used: true,
 		} satisfies AccessTokenRecord;
 		return {
+			...credentialResponseSchema.parse({
+				format: "dc+sd-jwt",
+				credential,
+				c_nonce: nonce.c_nonce,
+			}),
 			format: "dc+sd-jwt" as const,
-			credential,
-			c_nonce: nonce.c_nonce,
 			nonce: nonce.nonce,
 			updatedAccessToken,
 		};

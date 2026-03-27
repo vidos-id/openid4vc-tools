@@ -35,6 +35,7 @@ This package is currently published as raw TypeScript and is intended for Bun-ba
 
 - issuer metadata + JWKS output
 - pre-authorized grant + credential offer creation
+- `openid-credential-offer://` serialization helpers
 - token exchange + nonce issuance
 - proof JWT validation with `typ=openid4vci-proof+jwt`
 - claim-set driven issuance
@@ -48,6 +49,20 @@ This package is currently published as raw TypeScript and is intended for Bun-ba
 - OpenID4VCI: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html
 
 This package implements a deliberately small internal/demo subset of those specs.
+
+Supported OID4VCI subset:
+
+- by-value credential offers only
+- pre-authorized-code flow only
+- single `dc+sd-jwt` issuance only
+- storage-agnostic request/response helpers for embedding in your own server
+
+Out of scope:
+
+- authorization-code flow
+- DPoP
+- wallet attestation / key attestation
+- `tx_code`, deferred issuance, encrypted responses, batch issuance
 
 ## Example
 
@@ -76,6 +91,11 @@ const offer = issuer.createCredentialOffer({
   claims: { given_name: "Ada", family_name: "Lovelace" },
 });
 
+const offerUri = issuer.createCredentialOfferUri({
+  credential_configuration_id: "person",
+  claims: { given_name: "Ada", family_name: "Lovelace" },
+});
+
 await db.saveGrant(offer.preAuthorizedGrant.preAuthorizedCode, offer.preAuthorizedGrant);
 
 const token = issuer.exchangePreAuthorizedCode({
@@ -95,6 +115,8 @@ const issued = await issuer.issueCredential({
 ```
 
 For holder binding, the wallet provides its public JWK via a proof JWT -- see the [`@vidos-id/wallet`](../wallet/) library and [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) for the full flow.
+
+Host applications own HTTP routing and persistence. The issuer helpers return updated grant, access-token, and nonce records so your server can store them however it wants.
 
 ## Test
 

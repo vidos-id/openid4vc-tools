@@ -4,6 +4,7 @@ import { importCredentialAction } from "./actions/import.ts";
 import { initWalletAction } from "./actions/init.ts";
 import { listCredentialsAction } from "./actions/list.ts";
 import { presentCredentialAction } from "./actions/present.ts";
+import { receiveCredentialAction } from "./actions/receive.ts";
 import { showCredentialAction } from "./actions/show.ts";
 
 export function createProgram(version: string): Command {
@@ -78,6 +79,37 @@ Examples:
 		.action(async (options) => {
 			verbose(`Importing credential`);
 			const result = await importCredentialAction(options);
+			printResult(result, "json");
+		});
+
+	program
+		.command("receive")
+		.description(
+			"Receive and store a credential from an OpenID4VCI credential offer",
+		)
+		.requiredOption(
+			"--wallet-dir <dir>",
+			"Path to the wallet storage directory",
+		)
+		.requiredOption(
+			"--offer <value>",
+			"Credential offer JSON or an openid-credential-offer:// URI",
+		)
+		.addHelpText(
+			"after",
+			`
+Examples:
+  $ wallet-cli receive \
+      --wallet-dir ./my-wallet \
+      --offer 'openid-credential-offer://?credential_offer=...'
+
+  $ wallet-cli receive \
+      --wallet-dir ./my-wallet \
+      --offer '{"credential_issuer":"https://issuer.example",...}'`,
+		)
+		.action(async (options) => {
+			verbose(`Receiving credential into ${options.walletDir}`);
+			const result = await receiveCredentialAction(options);
 			printResult(result, "json");
 		});
 

@@ -13,8 +13,20 @@ import {
 	jwtVerify,
 	SignJWT,
 } from "jose";
+import {
+	type AccessTokenRecord,
+	createIssuer,
+	generateIssuerTrustMaterial,
+	jwkSchema,
+	type NonceRecord,
+	type PreAuthorizedGrantRecord,
+} from "../../issuer/src/index.ts";
 
 import { issueDemoCredential, sdJwtHasher } from "./crypto.ts";
+import {
+	parseCredentialOffer,
+	receiveCredentialFromOffer,
+} from "./openid4vci.ts";
 import {
 	createOpenId4VpAuthorizationResponse,
 	parseOpenid4VpAuthorizationUrl,
@@ -33,6 +45,44 @@ async function createIssuerFixture() {
 		privateJwk: await exportJWK(privateKey),
 		publicJwk: await exportJWK(publicKey),
 	};
+}
+
+async function createOid4VciIssuerFixture() {
+	const trust = await generateIssuerTrustMaterial({
+		alg: "ES256",
+		kid: "issuer-key-1",
+		subject: "/CN=Issuer Test",
+	});
+	return createIssuer(
+		{
+			issuer: "https://issuer.example",
+			signingKey: {
+				alg: trust.alg,
+				privateJwk: jwkSchema.parse(trust.privateJwk),
+				publicJwk: jwkSchema.parse(trust.publicJwk),
+			},
+			credentialConfigurationsSupported: {
+				person: {
+					format: "dc+sd-jwt",
+					vct: "https://example.com/PersonCredential",
+					scope: "PersonCredential",
+				},
+			},
+		},
+		{
+			now: () => 1_700_000_000,
+			idGenerator: (() => {
+				const ids = [
+					"grant-code-1",
+					"access-token-1",
+					"nonce-1",
+					"issued-nonce-1",
+				];
+				let index = 0;
+				return () => ids[index++] as string;
+			})(),
+		},
+	);
 }
 
 async function createRequestObject(
@@ -70,6 +120,93 @@ describe("wallet", () => {
 
 		expect(first.id).toBe(second.id);
 		expect((await storage.getHolderKey())?.id).toBe(first.id);
+	});
+
+	test("parses a by-value openid-credential-offer URI", () => {
+		const parsed = parseCredentialOffer(
+			`openid-credential-offer://?credential_offer=${encodeURIComponent(JSON.stringify({ credential_issuer: "https://issuer.example", credential_configuration_ids: ["person"], grants: { "urn:ietf:params:oauth:grant-type:pre-authorized_code": { "pre-authorized_code": "grant-code-1" } } }))}`,
+		);
+
+		expect(parsed.credential_issuer).toBe("https://issuer.example");
+		expect(parsed.credential_configuration_ids).toEqual(["person"]);
+	});
+
+	test("receives a credential from an OID4VCI offer and stores it", async () => {
+		const storage = new InMemoryWalletStorage();
+		const wallet = new Wallet(storage);
+		const issuer = await createOid4VciIssuerFixture();
+		const offer = issuer.createCredentialOffer({
+			credential_configuration_id: "person",
+			claims: { given_name: "Ada", family_name: "Lovelace" },
+		});
+		let currentGrant: PreAuthorizedGrantRecord = offer.preAuthorizedGrant;
+		let currentAccessToken: AccessTokenRecord | null = null;
+		let currentNonce: NonceRecord | null = null;
+
+		await withMockedFetch(
+			async (input, init) => {
+				const url = String(input);
+				if (
+					url === "https://issuer.example/.well-known/openid-credential-issuer"
+				) {
+					return Response.json(issuer.getMetadata());
+				}
+				if (url === "https://issuer.example/token") {
+					const body = new URLSearchParams(String(init?.body));
+					const tokenResponse = issuer.exchangePreAuthorizedCode({
+						tokenRequest: {
+							grant_type:
+								"urn:ietf:params:oauth:grant-type:pre-authorized_code",
+							"pre-authorized_code": body.get("pre-authorized_code") ?? "",
+						},
+						preAuthorizedGrant: currentGrant,
+					});
+					currentGrant = tokenResponse.updatedPreAuthorizedGrant;
+					currentAccessToken = tokenResponse.accessTokenRecord;
+					return Response.json(tokenResponse);
+				}
+				if (url === "https://issuer.example/nonce") {
+					expect(init?.method).toBe("POST");
+					const nonce = issuer.createNonce();
+					currentNonce = nonce.nonce;
+					return Response.json({
+						c_nonce: nonce.c_nonce,
+						c_nonce_expires_in: nonce.c_nonce_expires_in,
+					});
+				}
+				if (url === "https://issuer.example/credential") {
+					if (!currentAccessToken || !currentNonce) {
+						throw new Error("Missing token or nonce state");
+					}
+					const request = JSON.parse(String(init?.body)) as {
+						credential_configuration_id: string;
+						proofs: { jwt: Array<{ jwt: string }> };
+					};
+					const proof = await issuer.validateProofJwt({
+						jwt: request.proofs.jwt[0]?.jwt ?? "",
+						nonce: currentNonce,
+					});
+					const issued = await issuer.issueCredential({
+						accessToken: currentAccessToken,
+						credential_configuration_id: request.credential_configuration_id,
+						proof,
+					});
+					currentAccessToken = issued.updatedAccessToken;
+					return Response.json(issued);
+				}
+				throw new Error(`Unexpected fetch ${url}`);
+			},
+			async () => {
+				const stored = await receiveCredentialFromOffer(wallet, offer);
+				expect(stored.issuer).toBe("https://issuer.example");
+				expect(stored.vct).toBe("https://example.com/PersonCredential");
+				expect(stored.claims).toEqual({
+					given_name: "Ada",
+					family_name: "Lovelace",
+				});
+				expect(await wallet.listCredentials()).toHaveLength(1);
+			},
+		);
 	});
 
 	test("verifies the provided sd-jwt presentation kb-jwt signature", async () => {

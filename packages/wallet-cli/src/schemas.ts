@@ -1,4 +1,7 @@
-import { jsonOutputFormatSchema, outputFormatSchema } from "@vidos-id/cli-common";
+import {
+	jsonOutputFormatSchema,
+	outputFormatSchema,
+} from "@vidos-id/cli-common";
 import { z } from "zod";
 
 export { jsonOutputFormatSchema, outputFormatSchema };
@@ -25,6 +28,11 @@ export const importOptionsSchema = z
 			});
 		}
 	});
+
+export const receiveOptionsSchema = z.object({
+	walletDir: z.string().min(1),
+	offer: z.string().min(1),
+});
 
 export const listOptionsSchema = z.object({
 	walletDir: z.string().min(1),

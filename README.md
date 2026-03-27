@@ -4,6 +4,8 @@ CLI tools for quick `dc+sd-jwt` credential issuance, holding, and OpenID4VP pres
 
 Built for simple, scriptable credential flows -- primarily created as a PoC for making wallet operations CLI-consumable so they can be driven by AI agents like [OpenClaw](https://openclaw.ai/) 🦞.
 
+The repo also supports a minimal OpenID4VCI direct issuance subset: by-value credential offers, pre-authorized-code token exchange, issuer nonce retrieval, JWT proof-of-possession, single `dc+sd-jwt` issuance, and direct wallet import.
+
 ## Packages
 
 | Package | Description |
@@ -153,6 +155,32 @@ Or from an `openid4vp://` authorization URL:
 
 See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](packages/wallet-cli/) for full command reference.
 
+## Minimal OID4VCI
+
+Supported subset:
+
+- by-value `credential_offer` JSON and `openid-credential-offer://` URIs
+- pre-authorized-code flow only
+- issuer metadata discovery + nonce endpoint usage
+- JWT proofs with `typ=openid4vci-proof+jwt`
+- single `dc+sd-jwt` credential issuance and wallet storage
+
+Explicitly out of scope in this repo:
+
+- authorization-code flow
+- DPoP
+- wallet attestation / key attestation
+- `tx_code`
+- deferred, encrypted, or batch issuance
+
+CLI example:
+
+```bash
+wallet-cli receive \
+  --wallet-dir .demo/wallet \
+  --offer 'openid-credential-offer://?credential_offer=...'
+```
+
 ## Algorithms
 
 Supports ES256, ES384, and EdDSA throughout. Both CLIs accept `--alg` to choose:
@@ -185,9 +213,12 @@ You can also import existing key material instead of generating:
 
 ```bash
 bun scripts/demo-e2e.ts
+bun scripts/demo-oid4vci-e2e.ts
 ```
 
 Runs the full flow programmatically: generates trust material, issues a holder-bound credential, imports it, and creates a presentation.
+
+The OID4VCI demo exercises by-value credential offers, metadata discovery, pre-authorized-code exchange, nonce-based proof creation, direct issuance, and wallet storage.
 
 ## Example Inputs
 
@@ -210,6 +241,7 @@ bun run lint
 ## Notes
 
 - `dc+sd-jwt` format only
+- minimal OpenID4VCI direct issuance only; advanced OID4VCI/HAIP features are intentionally unsupported
 - DCQL only, no Presentation Exchange
 - `openid4vp://` limited to by-value requests with `client_id`, `nonce`, and `dcql_query`
 - wallet trust store for verifiers/readers is out of scope

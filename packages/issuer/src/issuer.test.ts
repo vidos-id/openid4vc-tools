@@ -5,6 +5,7 @@ import { exportJWK, generateKeyPair, SignJWT } from "jose";
 import { generateIssuerTrustMaterial } from "./crypto.ts";
 import { IssuerError } from "./errors.ts";
 import { createIssuer } from "./issuer.ts";
+import { serializeCredentialOfferUri } from "./openid4vci.ts";
 import { jwkSchema } from "./schemas.ts";
 
 const createTestIssuer = async () => {
@@ -75,6 +76,9 @@ describe("issuer metadata and offers", () => {
 		expect(
 			metadata.credential_configurations_supported.employee_card?.vct,
 		).toBe("https://issuer.example/credentials/employee-card");
+		expect(
+			metadata.credential_configurations_supported.employee_card?.scope,
+		).toBe("employee_card");
 
 		const offer = issuer.createCredentialOffer({
 			credential_configuration_id: "employee_card",
@@ -88,6 +92,13 @@ describe("issuer metadata and offers", () => {
 		).toBe("grant-code-1");
 		expect(offer.preAuthorizedGrant.preAuthorizedCode).toBe("grant-code-1");
 		expect(trust.jwks.keys[0]?.kid).toBe("issuer-key-1");
+
+		const offerUri = serializeCredentialOfferUri(offer);
+		expect(offerUri.startsWith("openid-credential-offer://?")).toBe(true);
+		const parsedOffer = JSON.parse(
+			new URL(offerUri).searchParams.get("credential_offer") as string,
+		) as Record<string, unknown>;
+		expect(parsedOffer.credential_issuer).toBe("https://issuer.example");
 	});
 });
 

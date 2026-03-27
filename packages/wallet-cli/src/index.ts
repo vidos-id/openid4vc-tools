@@ -11,6 +11,7 @@ export { importCredentialAction } from "./actions/import.ts";
 export { initWalletAction } from "./actions/init.ts";
 export { listCredentialsAction } from "./actions/list.ts";
 export { presentCredentialAction } from "./actions/present.ts";
+export { receiveCredentialAction } from "./actions/receive.ts";
 export { showCredentialAction } from "./actions/show.ts";
 export { createProgram };
 
