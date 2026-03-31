@@ -127,6 +127,9 @@ describe("issuer web server", () => {
 		await rm("./.tmp/issuer-web-status-source-of-truth.sqlite", {
 			force: true,
 		});
+		await rm("./.tmp/issuer-web-stable-status-list-jwt.sqlite", {
+			force: true,
+		});
 		await rm("./.tmp/issuer-web-multi-origin.sqlite", { force: true });
 	});
 
