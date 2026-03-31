@@ -1,4 +1,8 @@
-import { TOKEN_STATUS } from "@vidos-id/issuer-web-shared";
+import {
+	ACTIVE_TOKEN_STATUS,
+	REVOKED_TOKEN_STATUS,
+	SUSPENDED_TOKEN_STATUS,
+} from "@vidos-id/issuer-web-shared";
 import { Button } from "./ui/button.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 
@@ -46,9 +50,9 @@ export function IssuanceForm(props: {
 					}
 					className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
 				>
-					<option value={String(TOKEN_STATUS.active)}>Active</option>
-					<option value={String(TOKEN_STATUS.suspended)}>Suspended</option>
-					<option value={String(TOKEN_STATUS.revoked)}>Revoked</option>
+					<option value={String(ACTIVE_TOKEN_STATUS)}>Active</option>
+					<option value={String(SUSPENDED_TOKEN_STATUS)}>Suspended</option>
+					<option value={String(REVOKED_TOKEN_STATUS)}>Revoked</option>
 				</select>
 			</div>
 			<Button type="submit">Create issuance offer</Button>

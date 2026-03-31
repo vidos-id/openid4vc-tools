@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TOKEN_STATUS } from "./status.ts";
+import { ACTIVE_TOKEN_STATUS, KNOWN_TOKEN_STATUSES } from "./status.ts";
 
 export const jsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -55,9 +55,9 @@ export const issuanceStateSchema = z.enum([
 ]);
 
 export const issuanceStatusValueSchema = z.union([
-	z.literal(TOKEN_STATUS.active),
-	z.literal(TOKEN_STATUS.revoked),
-	z.literal(TOKEN_STATUS.suspended),
+	z.literal(KNOWN_TOKEN_STATUSES[0]),
+	z.literal(KNOWN_TOKEN_STATUSES[1]),
+	z.literal(KNOWN_TOKEN_STATUSES[2]),
 ]);
 
 export const issuanceSchema = z.object({
@@ -80,7 +80,7 @@ export const issuanceSchema = z.object({
 export const createIssuanceInputSchema = z.object({
 	templateId: z.string().min(1),
 	claims: jsonObjectSchema.optional(),
-	status: issuanceStatusValueSchema.default(TOKEN_STATUS.active),
+	status: issuanceStatusValueSchema.default(ACTIVE_TOKEN_STATUS),
 });
 
 export const updateIssuanceStatusInputSchema = z.object({

@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import type { IssuanceDetail } from "@vidos-id/issuer-web-shared";
-import { TOKEN_STATUS_LABELS } from "@vidos-id/issuer-web-shared";
+import {
+	ACTIVE_TOKEN_STATUS,
+	getTokenStatusLabel,
+} from "@vidos-id/issuer-web-shared";
 import type { BadgeVariant } from "./ui/badge.tsx";
 import { Badge } from "./ui/badge.tsx";
 
@@ -23,7 +26,7 @@ const STATE_BADGE_VARIANTS: Record<IssuanceState, BadgeVariant> = {
 };
 
 function statusVariant(status: number) {
-	const label = TOKEN_STATUS_LABELS[status as keyof typeof TOKEN_STATUS_LABELS];
+	const label = getTokenStatusLabel(status as 0 | 1 | 2);
 	if (label === "active") return "active" as const;
 	if (label === "suspended") return "suspended" as const;
 	if (label === "revoked") return "revoked" as const;
@@ -57,9 +60,11 @@ export function IssuanceList(props: {
 						<Badge variant={STATE_BADGE_VARIANTS[issuance.state]}>
 							{ISSUANCE_STATE_LABELS[issuance.state]}
 						</Badge>
-						<Badge variant={statusVariant(issuance.status)}>
-							{TOKEN_STATUS_LABELS[issuance.status]}
-						</Badge>
+						{issuance.status !== ACTIVE_TOKEN_STATUS ? (
+							<Badge variant={statusVariant(issuance.status)}>
+								{getTokenStatusLabel(issuance.status)}
+							</Badge>
+						) : null}
 					</div>
 				</Link>
 			))}

@@ -11,7 +11,7 @@ import {
 import { createServerApp } from "./app.ts";
 import { readIssuerWebEnv } from "./config.ts";
 import { createAppContext } from "./context.ts";
-import { issuances } from "./db/schema.ts";
+import { issuances, statusLists } from "./db/schema.ts";
 
 const TEST_SECRET = "0123456789abcdef0123456789abcdef";
 
@@ -124,6 +124,9 @@ describe("issuer web server", () => {
 		await rm("./.tmp/issuer-web-redeem-twice.sqlite", { force: true });
 		await rm("./.tmp/issuer-web-custom-grant-ttl.sqlite", { force: true });
 		await rm("./.tmp/issuer-web-legacy-state.sqlite", { force: true });
+		await rm("./.tmp/issuer-web-status-source-of-truth.sqlite", {
+			force: true,
+		});
 		await rm("./.tmp/issuer-web-multi-origin.sqlite", { force: true });
 	});
 
@@ -328,6 +331,52 @@ describe("issuer web server", () => {
 			issuance: { state: string };
 		};
 		expect(detail.issuance.state).toBe("redeemed");
+	});
+
+	test("reads issuance status from the status list rather than issuance fields", async () => {
+		const context = await createAppContext(
+			createTestEnv("issuer-web-status-source-of-truth"),
+		);
+		const app = await createServerApp(context);
+		const fetchImpl = createCookieFetch(app);
+		const template = await signUpAndCreateTemplate(fetchImpl);
+
+		const issuanceResponse = await fetchImpl(
+			"http://localhost:3001/api/issuances",
+			{
+				method: "POST",
+				headers: {
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({
+					templateId: template.id,
+				}),
+			},
+		);
+		expect(issuanceResponse.status).toBe(200);
+		const created = (await issuanceResponse.json()) as {
+			issuance: { id: string; statusListId: string; statusListIndex: number };
+		};
+
+		const statusListRow = await context.db.query.statusLists.findFirst({
+			where: eq(statusLists.id, created.issuance.statusListId),
+		});
+		const statuses = JSON.parse(statusListRow!.statusesJson) as number[];
+		statuses[created.issuance.statusListIndex] = 2;
+
+		await context.db
+			.update(statusLists)
+			.set({ statusesJson: JSON.stringify(statuses) })
+			.where(eq(statusLists.id, created.issuance.statusListId));
+
+		const detailResponse = await fetchImpl(
+			`http://localhost:3001/api/issuances/${created.issuance.id}`,
+		);
+		expect(detailResponse.status).toBe(200);
+		const detail = (await detailResponse.json()) as {
+			issuance: { status: number };
+		};
+		expect(detail.issuance.status).toBe(2);
 	});
 
 	test("accepts multiple trusted client origins from env", async () => {

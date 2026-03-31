@@ -26,27 +26,6 @@ import { StatusListService } from "./status-lists.ts";
 import { buildIssuerInstance } from "./support.ts";
 import { TemplateService } from "./templates.ts";
 
-function toIssuance(row: typeof issuances.$inferSelect): Issuance {
-	const resolvedState = row.state === "issued" ? "redeemed" : row.state;
-
-	return issuanceSchema.parse({
-		id: row.id,
-		ownerUserId: row.ownerUserId,
-		templateId: row.templateId,
-		credentialConfigurationId: row.credentialConfigurationId,
-		vct: row.vct,
-		claims: jsonParse(row.claimsJson),
-		state: resolvedState,
-		status: row.statusValue,
-		offerUri: row.offerUri,
-		statusListId: row.statusListId,
-		statusListIndex: row.statusListIndex,
-		credential: row.credential ?? null,
-		createdAt: asIsoString(row.createdAt),
-		updatedAt: asIsoString(row.updatedAt),
-	});
-}
-
 type IssuanceState = Issuance["state"];
 
 export class IssuanceService {
@@ -58,9 +37,35 @@ export class IssuanceService {
 		this.statusLists = new StatusListService(app);
 	}
 
+	private async buildIssuance(row: typeof issuances.$inferSelect) {
+		const status = await this.statusLists.getStatus(
+			row.statusListId,
+			row.statusListIndex,
+		);
+		const resolvedState = row.state === "issued" ? "redeemed" : row.state;
+
+		return issuanceSchema.parse({
+			id: row.id,
+			ownerUserId: row.ownerUserId,
+			templateId: row.templateId,
+			credentialConfigurationId: row.credentialConfigurationId,
+			vct: row.vct,
+			claims: jsonParse(row.claimsJson),
+			state: resolvedState,
+			status,
+			offerUri: row.offerUri,
+			statusListId: row.statusListId,
+			statusListIndex: row.statusListIndex,
+			credential: row.credential ?? null,
+			createdAt: asIsoString(row.createdAt),
+			updatedAt: asIsoString(row.updatedAt),
+		});
+	}
+
 	private async toResolvedIssuance(row: typeof issuances.$inferSelect) {
+		const issuance = await this.buildIssuance(row);
 		if (row.state !== "offered") {
-			return toIssuance(row);
+			return issuance;
 		}
 
 		const grant = await this.app.db.query.preAuthorizedGrants.findFirst({
@@ -69,12 +74,12 @@ export class IssuanceService {
 
 		if (grant && grant.expiresAt.getTime() <= now().getTime()) {
 			return issuanceSchema.parse({
-				...toIssuance(row),
+				...issuance,
 				state: "expired",
 			});
 		}
 
-		return toIssuance(row);
+		return issuance;
 	}
 
 	private async updateState(issuanceId: string, state: IssuanceState) {
@@ -142,7 +147,6 @@ export class IssuanceService {
 			vct: template.vct,
 			claimsJson: JSON.stringify(claims),
 			state: "offered",
-			statusValue: parsed.status,
 			offerUri,
 			preAuthorizedCode: offer.preAuthorizedGrant.preAuthorizedCode,
 			accessToken: null,
@@ -178,7 +182,7 @@ export class IssuanceService {
 		);
 		await this.app.db
 			.update(issuances)
-			.set({ statusValue: parsed.status, updatedAt: now() })
+			.set({ updatedAt: now() })
 			.where(eq(issuances.id, issuanceId));
 		return this.getOwned(userId, issuanceId);
 	}

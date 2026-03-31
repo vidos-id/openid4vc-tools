@@ -1,5 +1,8 @@
 import type { IssuanceDetail } from "@vidos-id/issuer-web-shared";
-import { TOKEN_STATUS_LABELS } from "@vidos-id/issuer-web-shared";
+import {
+	ACTIVE_TOKEN_STATUS,
+	getTokenStatusLabel,
+} from "@vidos-id/issuer-web-shared";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import type { BadgeVariant } from "./ui/badge.tsx";
@@ -7,7 +10,7 @@ import { Badge } from "./ui/badge.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 
 function statusVariant(status: number) {
-	const label = TOKEN_STATUS_LABELS[status as keyof typeof TOKEN_STATUS_LABELS];
+	const label = getTokenStatusLabel(status as 0 | 1 | 2);
 	if (label === "active") return "active" as const;
 	if (label === "suspended") return "suspended" as const;
 	if (label === "revoked") return "revoked" as const;
@@ -42,6 +45,7 @@ function isTerminalState(state: IssuanceState): boolean {
 export function IssuanceDetailCard(props: { detail: IssuanceDetail }) {
 	const { issuance } = props.detail;
 	const terminal = isTerminalState(issuance.state);
+	const showCredentialStatus = issuance.status !== ACTIVE_TOKEN_STATUS;
 
 	return (
 		<div className="grid gap-8 lg:grid-cols-2">
@@ -82,9 +86,11 @@ export function IssuanceDetailCard(props: { detail: IssuanceDetail }) {
 						<Badge variant={STATE_BADGE_VARIANTS[issuance.state]}>
 							{ISSUANCE_STATE_LABELS[issuance.state]}
 						</Badge>
-						<Badge variant={statusVariant(issuance.status)}>
-							{TOKEN_STATUS_LABELS[issuance.status]}
-						</Badge>
+						{showCredentialStatus ? (
+							<Badge variant={statusVariant(issuance.status)}>
+								{getTokenStatusLabel(issuance.status)}
+							</Badge>
+						) : null}
 					</div>
 					{!terminal && (
 						<p className="text-sm text-muted-foreground">

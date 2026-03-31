@@ -1,5 +1,5 @@
 import type { StatusListRecord } from "@vidos-id/issuer";
-import { TOKEN_STATUS } from "@vidos-id/issuer-web-shared";
+import { ACTIVE_TOKEN_STATUS } from "@vidos-id/issuer-web-shared";
 import { eq } from "drizzle-orm";
 import type { AppContext } from "../context.ts";
 import { statusLists } from "../db/schema.ts";
@@ -39,7 +39,7 @@ export class StatusListService {
 		const issuer = await buildIssuerInstance(this.app);
 		const allocated = issuer.allocateCredentialStatus({
 			statusList: rowToStatusList(row),
-			status: TOKEN_STATUS.active,
+			status: ACTIVE_TOKEN_STATUS,
 		});
 		await this.app.db
 			.update(statusLists)
@@ -75,6 +75,21 @@ export class StatusListService {
 				updatedAt: new Date(),
 			})
 			.where(eq(statusLists.id, row.id));
+	}
+
+	async getStatus(statusListId: string, idx: number) {
+		const row = await this.app.db.query.statusLists.findFirst({
+			where: eq(statusLists.id, statusListId),
+		});
+		if (!row) {
+			throw notFound("Status list not found");
+		}
+		const statusList = rowToStatusList(row);
+		const status = statusList.statuses[idx];
+		if (status === undefined) {
+			throw notFound("Status list entry not found");
+		}
+		return status;
 	}
 
 	async createStatusListJwt(statusListId: string) {

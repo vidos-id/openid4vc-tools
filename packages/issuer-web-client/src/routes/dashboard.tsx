@@ -1,6 +1,11 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { IssuanceDetail, Template } from "@vidos-id/issuer-web-shared";
-import { TOKEN_STATUS_LABELS } from "@vidos-id/issuer-web-shared";
+import {
+	ACTIVE_TOKEN_STATUS,
+	getTokenStatusLabel,
+	REVOKED_TOKEN_STATUS,
+	SUSPENDED_TOKEN_STATUS,
+} from "@vidos-id/issuer-web-shared";
 import { ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
@@ -16,11 +21,31 @@ import { loadDashboardData } from "../lib/app-state.ts";
 import { authClient, linkAnonymousAccount } from "../lib/auth.ts";
 
 function statusVariant(status: number) {
-	const label = TOKEN_STATUS_LABELS[status as keyof typeof TOKEN_STATUS_LABELS];
+	const label = getTokenStatusLabel(status as 0 | 1 | 2);
 	if (label === "active") return "active" as const;
 	if (label === "suspended") return "suspended" as const;
 	if (label === "revoked") return "revoked" as const;
 	return "default" as const;
+}
+
+function getAvailableStatusActions(status: number) {
+	if (status === ACTIVE_TOKEN_STATUS) {
+		return [SUSPENDED_TOKEN_STATUS, REVOKED_TOKEN_STATUS] as const;
+	}
+	if (status === SUSPENDED_TOKEN_STATUS) {
+		return [ACTIVE_TOKEN_STATUS, REVOKED_TOKEN_STATUS] as const;
+	}
+	return [ACTIVE_TOKEN_STATUS, SUSPENDED_TOKEN_STATUS] as const;
+}
+
+function getStatusActionLabel(status: number) {
+	if (status === ACTIVE_TOKEN_STATUS) {
+		return "Activate";
+	}
+	if (status === SUSPENDED_TOKEN_STATUS) {
+		return "Suspend";
+	}
+	return "Revoke";
 }
 
 const ISSUANCE_STATE_LABELS = {
@@ -70,39 +95,30 @@ function IssuanceRow(props: {
 					<Badge variant={STATE_BADGE_VARIANTS[issuance.state]}>
 						{ISSUANCE_STATE_LABELS[issuance.state]}
 					</Badge>
-					<Badge variant={statusVariant(issuance.status)}>
-						{TOKEN_STATUS_LABELS[issuance.status]}
-					</Badge>
+					{issuance.status !== ACTIVE_TOKEN_STATUS ? (
+						<Badge variant={statusVariant(issuance.status)}>
+							{getTokenStatusLabel(issuance.status)}
+						</Badge>
+					) : null}
 				</div>
 			</div>
 			<div className="flex shrink-0 flex-wrap gap-1.5">
-				{issuance.status !== 0 && (
+				{getAvailableStatusActions(issuance.status).map((status) => (
 					<Button
+						key={status}
 						variant="outline"
 						size="sm"
-						onClick={() => onUpdateStatus(issuance.id, 0)}
+						onClick={() => onUpdateStatus(issuance.id, status)}
 						type="button"
+						className={
+							status === REVOKED_TOKEN_STATUS
+								? "text-destructive hover:text-destructive"
+								: undefined
+						}
 					>
-						Set active
+						{getStatusActionLabel(status)}
 					</Button>
-				)}
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => onUpdateStatus(issuance.id, 2)}
-					type="button"
-				>
-					Suspend
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => onUpdateStatus(issuance.id, 1)}
-					type="button"
-					className="text-destructive hover:text-destructive"
-				>
-					Revoke
-				</Button>
+				))}
 			</div>
 		</div>
 	);
@@ -193,14 +209,14 @@ export function DashboardPage() {
 				</Section>
 
 				<Section
-					title="Open offers"
-					description="Track credential offers live while they move from offered to redeemed, or expire before redemption."
+					title="Redeemed credentials"
+					description="Manage status for credentials that have already been claimed by a wallet."
 				>
-					{openIssuances.length === 0 ? (
-						<IssuanceList issuances={openIssuances} />
+					{redeemedIssuances.length === 0 ? (
+						<IssuanceList issuances={redeemedIssuances} />
 					) : (
 						<div className="divide-y rounded-md border">
-							{openIssuances.map((issuance) => (
+							{redeemedIssuances.map((issuance) => (
 								<IssuanceRow
 									key={issuance.id}
 									issuance={issuance}
@@ -212,14 +228,14 @@ export function DashboardPage() {
 				</Section>
 
 				<Section
-					title="Redeemed credentials"
-					description="Manage status for credentials that have already been claimed by a wallet."
+					title="Open offers"
+					description="Track credential offers live while they move from offered to redeemed, or expire before redemption."
 				>
-					{redeemedIssuances.length === 0 ? (
-						<IssuanceList issuances={redeemedIssuances} />
+					{openIssuances.length === 0 ? (
+						<IssuanceList issuances={openIssuances} />
 					) : (
 						<div className="divide-y rounded-md border">
-							{redeemedIssuances.map((issuance) => (
+							{openIssuances.map((issuance) => (
 								<IssuanceRow
 									key={issuance.id}
 									issuance={issuance}

@@ -135,6 +135,7 @@ describe("issuer web client components", () => {
 		);
 		expect(html).toContain("Wallet handoff");
 		expect(html).toContain("Offered");
+		expect(html).not.toContain("active");
 		expect(html).not.toContain("Credential redeemed");
 		expect(html).not.toContain("Back to overview");
 	});

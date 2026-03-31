@@ -1,6 +1,9 @@
 import type { ClaimSet, CredentialConfiguration, Jwk } from "@vidos-id/issuer";
 import type { TokenStatusLabel } from "@vidos-id/issuer-web-shared";
-import { TOKEN_STATUS, TOKEN_STATUS_LABELS } from "@vidos-id/issuer-web-shared";
+import {
+	getTokenStatusLabel,
+	KNOWN_TOKEN_STATUSES,
+} from "@vidos-id/issuer-web-shared";
 
 export function jsonParse<T>(value: string): T {
 	return JSON.parse(value) as T;
@@ -38,11 +41,11 @@ export function mergeClaims(
 }
 
 export function buildStatusLabel(status: number): TokenStatusLabel {
-	return TOKEN_STATUS_LABELS[status as keyof typeof TOKEN_STATUS_LABELS];
+	return getTokenStatusLabel(status as 0 | 1 | 2) as TokenStatusLabel;
 }
 
 export function isKnownStatus(status: number) {
-	return Object.values(TOKEN_STATUS).includes(status as 0 | 1 | 2);
+	return KNOWN_TOKEN_STATUSES.includes(status as 0 | 1 | 2);
 }
 
 export function parseJwk(json: string) {

@@ -139,7 +139,6 @@ export const issuances = sqliteTable(
 		vct: text("vct").notNull(),
 		claimsJson: text("claims_json").notNull(),
 		state: text("state").notNull(),
-		statusValue: integer("status_value").notNull(),
 		offerUri: text("offer_uri").notNull(),
 		preAuthorizedCode: text("pre_authorized_code").notNull().unique(),
 		accessToken: text("access_token").unique(),
