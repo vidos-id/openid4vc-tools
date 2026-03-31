@@ -299,7 +299,7 @@ Options:
 - `receive` resolves issuer metadata from `/.well-known/openid-credential-issuer[issuer-path]` and then uses the advertised endpoints from that metadata
 - `receive` supports the minimal OID4VCI subset: by-value offers, by-reference `credential_offer_uri`, pre-authorized-code, JWT proof, and single `dc+sd-jwt` issuance
 - `show` automatically fetches, verifies, and decodes IETF status list JWTs for stored credentials that include a `status.status_list` reference
-- credentials are issued with [`@vidos-id/issuer-cli`](../issuer-cli/)
+- credential offers are typically created with [`@vidos-id/issuer-cli`](../issuer-cli/) against a running issuer web server
 - for remote inputs, use `--request "$(curl -fsSL <raw-url>)"` instead of relying on a local example file
 
 ## Test

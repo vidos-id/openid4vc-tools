@@ -7,10 +7,24 @@ import {
 } from "@vidos-id/cli-common";
 import { createProgram } from "./program.ts";
 
-export { generateTrustMaterialAction } from "./actions/generate-trust-material.ts";
-export { importTrustMaterialAction } from "./actions/import-trust-material.ts";
-export { initIssuerAction } from "./actions/init.ts";
-export { issueCredentialAction } from "./actions/issue.ts";
+export {
+	authSignInAction,
+	authSignOutAction,
+	authSignUpAction,
+	authWhoAmIAction,
+} from "./actions/auth.ts";
+export { interactiveAction } from "./actions/interactive.ts";
+export {
+	createIssuanceAction,
+	listIssuancesAction,
+	showIssuanceAction,
+	updateIssuanceStatusAction,
+} from "./actions/issuances.ts";
+export {
+	createTemplateAction,
+	deleteTemplateAction,
+	listTemplatesAction,
+} from "./actions/templates.ts";
 export { createProgram };
 
 export async function runCli(argv = process.argv): Promise<void> {

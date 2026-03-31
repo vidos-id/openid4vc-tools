@@ -10,7 +10,7 @@ The repo also supports a minimal OpenID4VCI direct issuance subset: by-value cre
 
 | Package | Description |
 |---------|-------------|
-| [`@vidos-id/issuer-cli`](packages/issuer-cli/) | Issue credentials and manage issuer key material |
+| [`@vidos-id/issuer-cli`](packages/issuer-cli/) | Terminal client for `issuer-web-server` |
 | [`@vidos-id/wallet-cli`](packages/wallet-cli/) | Hold credentials and create OpenID4VP presentations |
 | [`@vidos-id/issuer`](packages/issuer/) | Issuer library used by the CLI and Bun consumers |
 | [`@vidos-id/wallet`](packages/wallet/) | Wallet library used by the CLI and Bun consumers |
@@ -99,32 +99,35 @@ bun packages/issuer-cli/src/index.ts --help
 
 ## Quick Start
 
-Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. For wallet operations, see the detailed [`@vidos-id/wallet-cli` README](packages/wallet-cli/README.md) and use `wallet-cli --help` or `wallet-cli <command> --help` to inspect available commands.
+Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. `issuer-cli` now works as a client of `issuer-web-server`, while `wallet-cli` keeps wallet-side receipt, storage, and presentation concerns.
 
-The full issue-hold-present flow in 4 commands:
+The minimal server-backed flow:
 
 ```bash
-# 1. Initialize wallet (creates holder key)
-./wallet-cli init \
-  --wallet-dir .demo/wallet
+# 1. Start the issuer web server
+bun run --filter '@vidos-id/issuer-web-server' dev
 
-# 2. Initialize issuer (generates signing key, JWKS, trust material)
-./issuer-cli init \
-  --issuer-dir .demo/issuer
+# 2. Initialize a wallet
+./wallet-cli init --wallet-dir .demo/wallet
 
-# 3. Issue a holder-bound credential
-./issuer-cli issue \
-  --issuer-dir .demo/issuer \
-  --holder-key-file .demo/wallet/holder-key.json \
-  --issuer https://issuer.example \
+# 3. Sign into the issuer app from the terminal
+./issuer-cli auth signin --anonymous
+
+# 4. Create a template
+./issuer-cli templates create \
+  --name "PID" \
   --vct urn:eudi:pid:1 \
-  --credential-file credential.txt \
   --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)"
 
-# 4. Import credential into the wallet
-./wallet-cli import \
+# 5. Create an issuance offer from that template
+./issuer-cli issuances create \
+  --template-id <template-id> \
+  --claims '{"issuing_state":"demo"}'
+
+# 6. Redeem that offer with the wallet
+./wallet-cli receive \
   --wallet-dir .demo/wallet \
-  --credential-file .demo/issuer/credential.txt
+  --offer 'openid-credential-offer://?...'
 ```
 
 Then present it:
@@ -159,33 +162,15 @@ wallet-cli receive \
 
 For supported inputs, behavior, and command options, see [`packages/wallet-cli/README.md`](packages/wallet-cli/README.md) or run `wallet-cli receive --help`.
 
-## Algorithms
+## Interactive Issuer Flow
 
-Supports ES256, ES384, and EdDSA throughout. Both CLIs accept `--alg` to choose:
-
-```bash
-# Issuer with ES256
-./issuer-cli init --issuer-dir .demo/issuer --alg ES256
-
-# Wallet with EdDSA
-./wallet-cli init --wallet-dir .demo/wallet --alg EdDSA
-```
-
-Defaults: EdDSA for issuer signing, ES256 for wallet holder keys.
-
-You can also import existing key material instead of generating:
+`issuer-cli` also supports an interactive menu-driven mode by default when you run it without a subcommand:
 
 ```bash
-# Import a PEM or JWK private key (algorithm auto-detected)
-./issuer-cli import-trust-material \
-  --issuer-dir .demo/issuer \
-  --private-key ./private-key.pem
-
-# Import an existing holder key
-./wallet-cli init \
-  --wallet-dir .demo/wallet \
-  --holder-key-file ./holder-key.jwk.json
+./issuer-cli
 ```
+
+It can sign in, create templates, create issuance offers, inspect offer URIs, and update issuance status without having to remember every command flag.
 
 ## End-To-End Demo Script
 
@@ -194,7 +179,7 @@ bun scripts/demo-e2e.ts
 bun scripts/demo-oid4vci-e2e.ts
 ```
 
-Runs the full flow programmatically: generates trust material, issues a holder-bound credential, imports it, and creates a presentation.
+Runs the full flow programmatically: creates an issuance flow, receives a credential, and creates a presentation.
 
 The OID4VCI demo exercises by-value credential offers, metadata discovery, pre-authorized-code exchange, nonce-based proof creation, direct issuance, and wallet storage.
 
@@ -223,4 +208,4 @@ bun run lint
 - DCQL only, no Presentation Exchange
 - `openid4vp://` limited to by-value requests with `client_id`, `nonce`, and `dcql_query`
 - wallet trust store for verifiers/readers is out of scope
-- issuer certificate artifacts are for external verifier trust bootstrapping; wallet verification uses JWK/JWKS
+- issuer web server owns issuer state and protocol endpoints; `issuer-cli` is only an app client

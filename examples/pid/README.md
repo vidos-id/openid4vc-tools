@@ -12,9 +12,9 @@ Included examples:
 - `pid-address-request.json` - a DCQL request for address-focused PID claims - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-address-request.json`
 - `pid-basic.openid4vp.txt` - an `openid4vp://` URL carrying the same basic PID DCQL request by value - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-basic.openid4vp.txt`
 
-If you cloned the repo, use the local files directly, for example `./issuer-cli issue --claims-file examples/pid/pid-minimal.claims.json`.
+If you cloned the repo, use the local files directly, for example `./issuer-cli templates create --claims-file examples/pid/pid-minimal.claims.json --name PID --vct urn:eudi:pid:1`.
 
-If you only downloaded the release CLIs, fetch the same inputs from raw GitHub, for example `./issuer-cli issue --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)"`.
+If you only downloaded the release CLIs, fetch the same inputs from raw GitHub, for example `./issuer-cli templates create --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)" --name PID --vct urn:eudi:pid:1`.
 
 For development in this repo, the same flow can be run directly with Bun via `bun packages/issuer-cli/src/index.ts` and `bun packages/wallet-cli/src/index.ts`.
 

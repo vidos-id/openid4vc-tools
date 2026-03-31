@@ -1,8 +1,10 @@
 # @vidos-id/issuer-cli
 
-CLI for `dc+sd-jwt` credential issuance. Wraps the [`@vidos-id/issuer`](../issuer/) library.
+Terminal client for [`@vidos-id/issuer-web-server`](../issuer-web-server/).
 
-For the full issue-hold-present flow, see the [root README](../../).
+This CLI no longer issues credentials locally or manages issuer key material. It signs into a running issuer web server, manages templates and issuance offers, and exposes the same app-level workflows as the web client in a terminal-friendly form.
+
+For wallet-side credential receipt and storage, use [`@vidos-id/wallet-cli`](../wallet-cli/).
 
 ## Install
 
@@ -14,138 +16,178 @@ chmod +x issuer-cli
 ./issuer-cli --help
 ```
 
-Release artifacts do not bundle the repo's `examples/` directory. For remote example inputs, pass raw GitHub content via `--claims`.
-
-For development in this repo, you can run the bin entry directly with Bun:
+For development in this repo, run the bin entry directly with Bun:
 
 ```bash
 bun packages/issuer-cli/src/index.ts --help
 ```
 
-## Files in `--issuer-dir`
+## What It Does
 
-- `signing-key.json` - Issuer signing key (algorithm, private + public JWK)
-- `jwks.json` - Public JWKS for verifiers and wallets
-- `trust.json` - Verifier-facing trust artifact (certificate chain + JWK)
-- `credential-*.txt` - Issued credentials
+- sign in to a local or remote issuer web server
+- support guest sessions and username/password accounts
+- list, create, and delete templates
+- list issuances, create new issuance offers, inspect offer URIs, and update status
+- provide an interactive terminal flow with prompts and menus
+
+Running `issuer-cli` with no subcommand starts the interactive mode by default.
+
+## Server
+
+Run the API separately:
+
+```bash
+bun run --filter '@vidos-id/issuer-web-server' dev
+```
+
+Default local server URL:
+
+- `http://localhost:3001`
+
+Most commands use the saved session server automatically. You can override it with `--server-url`.
+
+## Session Storage
+
+By default the CLI stores the authenticated session at:
+
+- `~/.config/vidos-id/issuer-cli-session.json`
+
+Override it with `--session-file <file>`.
 
 ## Commands
 
-### `init`
+### `auth signin`
 
-Initialize an issuer directory with signing key, JWKS, and trust material.
-
-```bash
-issuer-cli init --issuer-dir ./my-issuer
-issuer-cli init --issuer-dir ./my-issuer --alg ES256
-```
-
-Options:
-- `--issuer-dir <dir>` (required) - path to the issuer directory
-- `--alg <algorithm>` - signing algorithm: ES256, ES384, or EdDSA (default: EdDSA)
-
-### `issue`
-
-Issue a `dc+sd-jwt` credential.
+Sign in with either a guest session or username/password.
 
 ```bash
-issuer-cli issue \
-  --issuer-dir ./my-issuer \
-  --issuer https://issuer.example \
-  --vct urn:eudi:pid:1 \
-  --claims-file claims.json
-
-# From a raw GitHub example file
-issuer-cli issue \
-  --issuer-dir ./my-issuer \
-  --issuer https://issuer.example \
-  --vct urn:eudi:pid:1 \
-  --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)"
-
-# With holder binding (from wallet-cli holder key file)
-issuer-cli issue \
-  --issuer-dir ./my-issuer \
-  --issuer https://issuer.example \
-  --vct urn:eudi:pid:1 \
-  --claims-file claims.json \
-  --holder-key-file ./wallet/holder-key.json
-
-# With holder binding (inline JWK, for remote wallets)
-issuer-cli issue \
-  --issuer-dir ./my-issuer \
-  --issuer https://issuer.example \
-  --vct urn:eudi:pid:1 \
-  --claims '{"given_name":"Ada"}' \
-  --holder-key '{"kty":"EC","crv":"P-256","x":"...","y":"..."}'
+issuer-cli auth signin --anonymous
+issuer-cli auth signin --server-url http://localhost:3001 --username ada --password secret
 ```
 
-Options:
-- `--issuer-dir <dir>` (required) - path to issuer directory with `signing-key.json`
-- `--issuer <url>` (required) - issuer identifier URL
-- `--vct <uri>` (required) - Verifiable Credential Type URI
-- `--claims <json>` - inline JSON claims
-- `--claims-file <file>` - path to JSON claims file on local disk
-- `--holder-key-file <file>` - wallet holder key file for holder binding (omit for unbound)
-- `--holder-key <json>` - inline holder key JWK JSON (alternative to `--holder-key-file`)
-- `--credential-file <name>` - output filename (default: `credential-<uuid>.txt`)
-- `--signing-key-file <file>` - override the signing key from `--issuer-dir`
+### `auth signup`
 
-### `generate-trust-material`
-
-Generate key material, JWKS, and self-signed certificate artifacts. Useful when you need individual output files instead of the `--issuer-dir` layout.
+Create an account and save the resulting session.
 
 ```bash
-issuer-cli generate-trust-material --issuer-dir ./my-issuer
-issuer-cli generate-trust-material --issuer-dir ./my-issuer --alg ES384
+issuer-cli auth signup --username ada --password secret
 ```
 
-Options:
-- `--issuer-dir <dir>` - write default output files to this directory
-- `--alg <algorithm>` - signing algorithm: ES256, ES384, or EdDSA (default: EdDSA)
-- `--kid <kid>` - key id (default: `issuer-key-1`)
+### `auth whoami`
 
-### `import-trust-material`
-
-Import an existing private key (PEM or JWK) and produce issuer artifacts. The algorithm is auto-detected from the key type (EC/P-256 = ES256, EC/P-384 = ES384, OKP = EdDSA).
+Show the saved session.
 
 ```bash
-# Import PEM private key (generates self-signed certificate)
-issuer-cli import-trust-material \
-  --issuer-dir ./my-issuer \
-  --private-key ./private-key.pem
-
-# Import JWK with existing certificate
-issuer-cli import-trust-material \
-  --issuer-dir ./my-issuer \
-  --private-key ./private-key.json \
-  --certificate ./cert.pem
-
-# Override auto-detected algorithm
-issuer-cli import-trust-material \
-  --issuer-dir ./my-issuer \
-  --private-key ./key.pem \
-  --alg ES256
+issuer-cli auth whoami
 ```
 
-Options:
-- `--issuer-dir <dir>` (required) - output directory
-- `--private-key <file>` (required) - PEM (PKCS#8) or JWK JSON private key
-- `--certificate <file>` - PEM certificate (if omitted, self-signed is generated)
-- `--alg <algorithm>` - override algorithm detection
+### `auth signout`
+
+Sign out and clear the saved session file.
+
+```bash
+issuer-cli auth signout
+```
+
+### `templates list`
+
+List the predefined and custom templates visible to the current user.
+
+```bash
+issuer-cli templates list
+```
+
+### `templates create`
+
+Create a custom template.
+
+```bash
+issuer-cli templates create \
+  --name "Conference Pass" \
+  --vct https://issuer.example/credentials/conference-pass \
+  --claims '{"given_name":"Ada","pass_level":"speaker"}'
+
+issuer-cli templates create \
+  --name "PID" \
+  --vct urn:eudi:pid:1 \
+  --claims-file examples/pid/pid-minimal.claims.json
+```
+
+### `templates delete`
+
+Delete a custom template by id.
+
+```bash
+issuer-cli templates delete --template-id <template-id>
+```
+
+### `issuances list`
+
+List issuances for the current user.
+
+```bash
+issuer-cli issuances list
+```
+
+### `issuances create`
+
+Create an issuance offer from a template. The output includes the `openid-credential-offer://` URI for wallet handoff.
+
+```bash
+issuer-cli issuances create \
+  --template-id <template-id> \
+  --claims '{"seat":"A-12"}' \
+  --status active
+```
+
+### `issuances show`
+
+Show one issuance, including its current state, claims, and offer URI.
+
+```bash
+issuer-cli issuances show --issuance-id <issuance-id>
+```
+
+### `issuances status`
+
+Update credential status for an issuance.
+
+```bash
+issuer-cli issuances status --issuance-id <issuance-id> --status suspended
+issuer-cli issuances status --issuance-id <issuance-id> --status revoked
+```
+
+## Interactive Mode
+
+Start the interactive terminal flow by running the CLI without a subcommand:
+
+```bash
+issuer-cli
+issuer-cli --server-url http://localhost:3001
+```
+
+The interactive mode can:
+
+- choose the target server URL
+- sign in as guest or with credentials
+- create and delete templates
+- create issuances from a selected template
+- inspect and update existing issuances
 
 ## Global options
 
+- running `issuer-cli` with no subcommand starts interactive mode
+- `--server-url <url>` - override the issuer web server URL
+- `--session-file <file>` - override the saved session file location
 - `--verbose` - enable verbose logging to stderr
 - `--version` - show version number
 - `--help` - show help for a command
 
 ## Notes
 
-- `issue` writes to `--issuer-dir` and fails if the credential file already exists
-- without `--holder-key-file` or `--holder-key`, issuance is unbound (no `cnf` claim)
-- reserved protocol claims (`vct`, `iss`) are issuer-controlled
-- credential output goes to `--issuer-dir`; use [`@vidos-id/wallet-cli import`](../wallet-cli/) to bring it into a wallet
-- for remote inputs, use `--claims "$(curl -fsSL <raw-url>)"` instead of `--claims-file`
+- `issuer-cli` is an app client of `issuer-web-server`; it does not issue locally
+- `issuer-cli` does not receive or store credentials; wallet redemption belongs to [`wallet-cli receive`](../wallet-cli/)
+- command output is concise text meant for terminal usage rather than raw JSON dumps
 
 ## Test
 
