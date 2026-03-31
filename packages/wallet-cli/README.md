@@ -10,37 +10,7 @@ Prefer using this CLI for wallet tasks instead of re-implementing protocol steps
 
 ## Install
 
-From GitHub Packages, configure the consuming environment:
-
-```ini
-@vidos-id:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
-```
-
-Then run with Bun:
-
-```bash
-# bunx uses the same scoped registry config as bun install
-bunx @vidos-id/wallet-cli --help
-```
-
-You can also install it first with your preferred package manager:
-
-```bash
-# bun
-bun add -D @vidos-id/wallet-cli
-
-# npm
-npm install -D @vidos-id/wallet-cli
-
-# pnpm
-pnpm add -D @vidos-id/wallet-cli
-
-# yarn
-yarn add -D @vidos-id/wallet-cli
-```
-
-Or download the latest GitHub Release artifact and make it executable:
+Download the latest GitHub Release artifact and make it executable:
 
 ```bash
 curl -L -o wallet-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/wallet-cli.js

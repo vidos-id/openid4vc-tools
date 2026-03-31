@@ -6,37 +6,7 @@ For the full issue-hold-present flow, see the [root README](../../).
 
 ## Install
 
-From GitHub Packages, configure the consuming environment:
-
-```ini
-@vidos-id:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_PACKAGES_TOKEN}
-```
-
-Then run with Bun:
-
-```bash
-# bunx uses the same scoped registry config as bun install
-bunx @vidos-id/issuer-cli --help
-```
-
-You can also install it first with your preferred package manager:
-
-```bash
-# bun
-bun add -D @vidos-id/issuer-cli
-
-# npm
-npm install -D @vidos-id/issuer-cli
-
-# pnpm
-pnpm add -D @vidos-id/issuer-cli
-
-# yarn
-yarn add -D @vidos-id/issuer-cli
-```
-
-Or download the latest GitHub Release artifact and make it executable:
+Download the latest GitHub Release artifact and make it executable:
 
 ```bash
 curl -L -o issuer-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/issuer-cli.js

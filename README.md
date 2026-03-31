@@ -58,19 +58,7 @@ pnpm add @vidos-id/wallet @vidos-id/issuer
 yarn add @vidos-id/wallet @vidos-id/issuer
 ```
 
-Run the CLIs from the registry:
-
-```bash
-# bunx uses the same scoped registry config as bun install
-bunx @vidos-id/wallet-cli --help
-bunx @vidos-id/issuer-cli --help
-```
-
-If `bunx` cannot resolve the scope, add the same `@vidos-id` registry mapping to `.npmrc` or `bunfig.toml`; no extra bunx-only config is needed.
-
-These published packages currently ship raw TypeScript sources, so they are intended for Bun-based execution/consumption. GitHub Packages still requires a token for installs, even when the packages are public.
-
-### GitHub Releases
+### GitHub CLI Releases
 
 Download the latest release assets:
 

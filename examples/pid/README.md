@@ -14,8 +14,6 @@ Included examples:
 
 If you cloned the repo, use the local files directly, for example `./issuer-cli issue --claims-file examples/pid/pid-minimal.claims.json`.
 
-If you are using the published GitHub Packages CLI, run commands via `bunx @vidos-id/issuer-cli ...` and `bunx @vidos-id/wallet-cli ...`.
-
 If you only downloaded the release CLIs, fetch the same inputs from raw GitHub, for example `./issuer-cli issue --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)"`.
 
 For development in this repo, the same flow can be run directly with Bun via `bun packages/issuer-cli/src/index.ts` and `bun packages/wallet-cli/src/index.ts`.
