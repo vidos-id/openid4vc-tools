@@ -10,6 +10,7 @@ import {
 	statusLists,
 	users,
 } from "./db/schema.ts";
+import { signStatusList } from "./services/support.ts";
 
 export type AppContext = {
 	env: IssuerWebEnv;
@@ -68,33 +69,6 @@ async function ensureBootstrapState(db: IssuerWebDatabase, env: IssuerWebEnv) {
 			createdAt: now,
 			updatedAt: now,
 		});
-	}
-
-	const existingStatusList = await db.query.statusLists.findFirst({
-		where: eq(statusLists.isActive, true),
-	});
-	const defaultStatusListUri = new URL(
-		"/status-lists/default",
-		env.ISSUER_WEB_ORIGIN,
-	).toString();
-	if (!existingStatusList) {
-		await db.insert(statusLists).values({
-			id: "default",
-			uri: defaultStatusListUri,
-			bits: 2,
-			statusesJson: "[]",
-			isActive: true,
-			ttl: 300,
-			createdAt: now,
-			updatedAt: now,
-		});
-	} else if (existingStatusList.id === "default") {
-		if (existingStatusList.uri !== defaultStatusListUri) {
-			await db
-				.update(statusLists)
-				.set({ uri: defaultStatusListUri, updatedAt: now })
-				.where(eq(statusLists.id, existingStatusList.id));
-		}
 	}
 
 	const predefinedTemplates = await db.query.credentialTemplates.findMany({
@@ -160,5 +134,56 @@ async function ensureBootstrapState(db: IssuerWebDatabase, env: IssuerWebEnv) {
 				updatedAt: now,
 			},
 		]);
+	}
+
+	const bootstrapApp = { env, db, auth: null as never };
+	const existingStatusList = await db.query.statusLists.findFirst({
+		where: eq(statusLists.isActive, true),
+	});
+	const defaultStatusListUri = new URL(
+		"/status-lists/default",
+		env.ISSUER_WEB_ORIGIN,
+	).toString();
+	if (!existingStatusList) {
+		const statusListJwt = await signStatusList(bootstrapApp, {
+			uri: defaultStatusListUri,
+			bits: 2,
+			statuses: [],
+			ttl: 300,
+		});
+		await db.insert(statusLists).values({
+			id: "default",
+			uri: defaultStatusListUri,
+			bits: 2,
+			statusesJson: "[]",
+			statusListJwt,
+			isActive: true,
+			ttl: 300,
+			createdAt: now,
+			updatedAt: now,
+		});
+	} else if (existingStatusList.id === "default") {
+		if (
+			existingStatusList.uri !== defaultStatusListUri ||
+			existingStatusList.statusListJwt.length === 0
+		) {
+			const statusListJwt = await signStatusList(bootstrapApp, {
+				uri: defaultStatusListUri,
+				bits: existingStatusList.bits as 1 | 2 | 4 | 8,
+				statuses: JSON.parse(existingStatusList.statusesJson) as number[],
+				ttl: existingStatusList.ttl ?? undefined,
+				expiresAt: existingStatusList.expiresAt
+					? Math.floor(existingStatusList.expiresAt.getTime() / 1000)
+					: undefined,
+			});
+			await db
+				.update(statusLists)
+				.set({
+					uri: defaultStatusListUri,
+					statusListJwt,
+					updatedAt: now,
+				})
+				.where(eq(statusLists.id, existingStatusList.id));
+		}
 	}
 }

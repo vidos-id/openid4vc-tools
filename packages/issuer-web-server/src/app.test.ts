@@ -213,6 +213,64 @@ describe("issuer web server", () => {
 		expect(revokedStatus?.status.value).toBe(1);
 	});
 
+	test("returns a stable status list JWT until the list changes", async () => {
+		const context = await createAppContext(
+			createTestEnv("issuer-web-stable-status-list-jwt"),
+		);
+		const app = await createServerApp(context);
+		const fetchImpl = createCookieFetch(app);
+		const template = await signUpAndCreateTemplate(fetchImpl);
+
+		const issuanceResponse = await fetchImpl(
+			"http://localhost:3001/api/issuances",
+			{
+				method: "POST",
+				headers: {
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({
+					templateId: template.id,
+				}),
+			},
+		);
+		expect(issuanceResponse.status).toBe(200);
+		const created = (await issuanceResponse.json()) as {
+			issuance: { id: string; statusListId: string };
+		};
+
+		const firstResponse = await fetchImpl(
+			`http://localhost:3001/status-lists/${created.issuance.statusListId}`,
+		);
+		expect(firstResponse.status).toBe(200);
+		const firstJwt = await firstResponse.text();
+
+		const secondResponse = await fetchImpl(
+			`http://localhost:3001/status-lists/${created.issuance.statusListId}`,
+		);
+		expect(secondResponse.status).toBe(200);
+		const secondJwt = await secondResponse.text();
+		expect(secondJwt).toBe(firstJwt);
+
+		const updateResponse = await fetchImpl(
+			`http://localhost:3001/api/issuances/${created.issuance.id}/status`,
+			{
+				method: "PATCH",
+				headers: {
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({ status: 2 }),
+			},
+		);
+		expect(updateResponse.status).toBe(200);
+
+		const updatedResponse = await fetchImpl(
+			`http://localhost:3001/status-lists/${created.issuance.statusListId}`,
+		);
+		expect(updatedResponse.status).toBe(200);
+		const updatedJwt = await updatedResponse.text();
+		expect(updatedJwt).not.toBe(firstJwt);
+	});
+
 	test("reuses an active access token when the same offer is redeemed twice", async () => {
 		const context = await createAppContext(
 			createTestEnv("issuer-web-redeem-twice"),

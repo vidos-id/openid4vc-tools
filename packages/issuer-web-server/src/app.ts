@@ -130,7 +130,7 @@ function createBaseApp(context: AppContext) {
 			},
 		)
 		.get("/status-lists/:id", async (c) => {
-			const jwt = await statusLists.createStatusListJwt(c.req.param("id"));
+			const jwt = await statusLists.getStatusListJwt(c.req.param("id"));
 			c.header("content-type", "application/statuslist+jwt");
 			return c.body(jwt);
 		})

@@ -1,4 +1,4 @@
-import { createIssuer } from "@vidos-id/issuer";
+import { createIssuer, type StatusListRecord } from "@vidos-id/issuer";
 import type { AppContext } from "../context.ts";
 import { buildCredentialConfiguration, parseJwk } from "../utils.ts";
 
@@ -36,4 +36,12 @@ export async function buildIssuerInstance(app: AppContext) {
 		},
 		grantTtlSeconds: app.env.ISSUER_WEB_PRE_AUTHORIZED_CODE_TTL_SECONDS,
 	});
+}
+
+export async function signStatusList(
+	app: AppContext,
+	statusList: StatusListRecord,
+) {
+	const issuer = await buildIssuerInstance(app);
+	return issuer.createStatusListToken(statusList);
 }

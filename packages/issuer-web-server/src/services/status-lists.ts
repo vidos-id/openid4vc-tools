@@ -5,7 +5,7 @@ import type { AppContext } from "../context.ts";
 import { statusLists } from "../db/schema.ts";
 import { notFound } from "../errors.ts";
 import { jsonParse } from "../utils.ts";
-import { buildIssuerInstance } from "./support.ts";
+import { buildIssuerInstance, signStatusList } from "./support.ts";
 
 function rowToStatusList(
 	row: typeof statusLists.$inferSelect,
@@ -41,10 +41,15 @@ export class StatusListService {
 			statusList: rowToStatusList(row),
 			status: ACTIVE_TOKEN_STATUS,
 		});
+		const statusListJwt = await signStatusList(
+			this.app,
+			allocated.updatedStatusList,
+		);
 		await this.app.db
 			.update(statusLists)
 			.set({
 				statusesJson: JSON.stringify(allocated.updatedStatusList.statuses),
+				statusListJwt,
 				updatedAt: new Date(),
 			})
 			.where(eq(statusLists.id, row.id));
@@ -68,10 +73,12 @@ export class StatusListService {
 			idx,
 			status,
 		});
+		const statusListJwt = await signStatusList(this.app, updated);
 		await this.app.db
 			.update(statusLists)
 			.set({
 				statusesJson: JSON.stringify(updated.statuses),
+				statusListJwt,
 				updatedAt: new Date(),
 			})
 			.where(eq(statusLists.id, row.id));
@@ -92,14 +99,13 @@ export class StatusListService {
 		return status;
 	}
 
-	async createStatusListJwt(statusListId: string) {
+	async getStatusListJwt(statusListId: string) {
 		const row = await this.app.db.query.statusLists.findFirst({
 			where: eq(statusLists.id, statusListId),
 		});
 		if (!row) {
 			throw notFound("Status list not found");
 		}
-		const issuer = await buildIssuerInstance(this.app);
-		return issuer.createStatusListToken(rowToStatusList(row));
+		return row.statusListJwt;
 	}
 }

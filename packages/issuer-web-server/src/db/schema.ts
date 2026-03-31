@@ -118,6 +118,7 @@ export const statusLists = sqliteTable("status_list", {
 	uri: text("uri").notNull().unique(),
 	bits: integer("bits").notNull(),
 	statusesJson: text("statuses_json").notNull(),
+	statusListJwt: text("status_list_jwt").notNull(),
 	ttl: integer("ttl"),
 	expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
 	isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
