@@ -135,9 +135,10 @@
         "wallet-cli": "./src/index.ts",
       },
       "dependencies": {
-        "@vidos-id/cli-common": "0.1.0",
-        "@vidos-id/wallet": "0.1.0",
+        "@vidos-id/cli-common": "workspace:*",
+        "@vidos-id/wallet": "workspace:*",
         "commander": "^14.0.3",
+        "inquirer": "^12.9.6",
         "zod": "^4.3.6",
       },
     },

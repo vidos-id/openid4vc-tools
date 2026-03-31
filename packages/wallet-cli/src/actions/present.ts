@@ -1,4 +1,3 @@
-import { createInterface } from "node:readline/promises";
 import { verbose } from "@vidos-id/cli-common";
 import {
 	createOpenId4VpAuthorizationResponse,
@@ -10,6 +9,7 @@ import {
 	Wallet,
 	type WalletStorage,
 } from "@vidos-id/wallet";
+import { PromptSession } from "../prompts.ts";
 import { presentOptionsSchema } from "../schemas.ts";
 import { SelectedCredentialStorage } from "../selected-storage.ts";
 import { FileSystemWalletStorage } from "../storage.ts";
@@ -102,32 +102,17 @@ async function promptForCredentialSelection(
 		);
 	}
 
-	process.stderr.write(
-		`Multiple credentials match query ${queryMatch.queryId}:\n`,
-	);
-	for (const [index, credential] of queryMatch.credentials.entries()) {
-		process.stderr.write(
-			`${index + 1}. ${credential.credentialId} | ${credential.vct} | ${credential.issuer} | ${formatClaimPreview(credential.claims)}\n`,
-		);
-	}
-
-	const rl = createInterface({ input: process.stdin, output: process.stderr });
+	const prompt = new PromptSession();
 	try {
-		while (true) {
-			const answer = (
-				await rl.question(
-					`Select credential [1-${queryMatch.credentials.length}]: `,
-				)
-			).trim();
-			const selectedIndex = Number.parseInt(answer, 10) - 1;
-			const selected = queryMatch.credentials[selectedIndex];
-			if (selected) {
-				return selected.credentialId;
-			}
-			process.stderr.write("Enter a valid number.\n");
-		}
+		return await prompt.choose(
+			`Multiple credentials match query ${queryMatch.queryId}`,
+			queryMatch.credentials.map((credential) => ({
+				label: `${credential.credentialId} | ${credential.vct} | ${credential.issuer} | ${formatClaimPreview(credential.claims)}`,
+				value: credential.credentialId,
+			})),
+		);
 	} finally {
-		rl.close();
+		prompt.close();
 	}
 }
 

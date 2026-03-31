@@ -99,7 +99,7 @@ bun packages/issuer-cli/src/index.ts --help
 
 ## Quick Start
 
-Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. `issuer-cli` now works as a client of `issuer-web-server`, while `wallet-cli` keeps wallet-side receipt, storage, and presentation concerns.
+Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. `issuer-cli` now works as a client of `issuer-web-server`, while `wallet-cli` keeps wallet-side receipt, storage, and presentation concerns. `wallet-cli receive` is the primary way to add credentials into a wallet.
 
 The minimal server-backed flow:
 
@@ -130,6 +130,13 @@ bun run --filter '@vidos-id/issuer-web-server' dev
   --offer 'openid-credential-offer://?...'
 ```
 
+Both CLIs also support interactive mode by default when run with no subcommand:
+
+```bash
+./issuer-cli
+./wallet-cli
+```
+
 Then present it:
 
 ```bash
@@ -150,7 +157,7 @@ See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](
 
 ## Minimal OID4VCI
 
-Wallet-side offer redemption is exposed through `wallet-cli receive`.
+Wallet-side offer redemption is exposed through `wallet-cli receive`, and that is the primary ingest path for credentials.
 
 Example:
 
