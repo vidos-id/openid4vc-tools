@@ -10,8 +10,14 @@ export async function showCredentialAction(rawOptions: unknown) {
 	if (!credential) {
 		throw new Error(`Credential ${options.credentialId} not found`);
 	}
-	const status = options.resolveStatus
-		? await wallet.getCredentialStatus(options.credentialId)
-		: undefined;
-	return { credential, status };
+	try {
+		const status = await wallet.getCredentialStatus(options.credentialId);
+		return { credential, status, statusWarning: undefined };
+	} catch (error) {
+		return {
+			credential,
+			status: null,
+			statusWarning: error instanceof Error ? error.message : String(error),
+		};
+	}
 }

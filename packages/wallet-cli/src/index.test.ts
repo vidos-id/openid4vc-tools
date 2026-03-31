@@ -145,6 +145,7 @@ describe("wallet-cli", () => {
 		try {
 			const result = await initWalletAction({ walletDir });
 			expect(result.holderKey.id.length).toBeGreaterThan(0);
+			expect(result.imported).toBe(false);
 			expect(await readdir(walletDir)).toContain("holder-key.json");
 		} finally {
 			await rm(walletDir, { recursive: true, force: true });
@@ -245,7 +246,6 @@ describe("wallet-cli", () => {
 					const shown = await showCredentialAction({
 						walletDir,
 						credentialId: result.credential.id,
-						resolveStatus: true,
 					});
 					expect(shown.status?.status).toEqual({
 						value: 0,
@@ -260,13 +260,112 @@ describe("wallet-cli", () => {
 					const suspended = await showCredentialAction({
 						walletDir,
 						credentialId: result.credential.id,
-						resolveStatus: true,
 					});
 					expect(suspended.status?.status).toEqual({
 						value: 2,
 						label: "SUSPENDED",
 						isValid: false,
 					});
+				},
+			);
+		} finally {
+			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("show returns warning instead of failing when status resolution fails", async () => {
+		const walletDir = await mkdtemp(join(tmpdir(), "wallet-cli-show-warning-"));
+		try {
+			const issuer = await createOid4VciIssuerFixture();
+			const offer = issuer.createCredentialOffer({
+				credential_configuration_id: "person",
+				claims: { given_name: "Ada", family_name: "Lovelace" },
+			});
+			let currentGrant: PreAuthorizedGrantRecord = offer.preAuthorizedGrant;
+			let currentAccessToken: AccessTokenRecord | null = null;
+			let currentNonce: NonceRecord | null = null;
+
+			await withMockedFetch(
+				async (input, init) => {
+					const url = String(input);
+					if (
+						url ===
+						"https://issuer.example/.well-known/openid-credential-issuer"
+					) {
+						return Response.json(issuer.getMetadata());
+					}
+					if (url === "https://issuer.example/token") {
+						const body = new URLSearchParams(String(init?.body));
+						const tokenResponse = issuer.exchangePreAuthorizedCode({
+							tokenRequest: {
+								grant_type:
+									"urn:ietf:params:oauth:grant-type:pre-authorized_code",
+								"pre-authorized_code": body.get("pre-authorized_code") ?? "",
+							},
+							preAuthorizedGrant: currentGrant,
+						});
+						currentGrant = tokenResponse.updatedPreAuthorizedGrant;
+						currentAccessToken = tokenResponse.accessTokenRecord;
+						return Response.json(tokenResponse);
+					}
+					if (url === "https://issuer.example/nonce") {
+						const nonce = issuer.createNonce();
+						currentNonce = nonce.nonce;
+						return Response.json({
+							c_nonce: nonce.c_nonce,
+							c_nonce_expires_in: nonce.c_nonce_expires_in,
+						});
+					}
+					if (url === "https://issuer.example/credential") {
+						if (!currentAccessToken || !currentNonce) {
+							throw new Error("Missing token or nonce state");
+						}
+						const request = JSON.parse(String(init?.body)) as {
+							credential_configuration_id: string;
+							proofs: { jwt: Array<{ jwt: string }> };
+						};
+						const proof = await issuer.validateProofJwt({
+							jwt: request.proofs.jwt[0]?.jwt ?? "",
+							nonce: currentNonce,
+						});
+						const issued = await issuer.issueCredential({
+							accessToken: currentAccessToken,
+							credential_configuration_id: request.credential_configuration_id,
+							proof,
+							status: {
+								status_list: {
+									uri: "https://issuer.example/status-lists/missing",
+									idx: 7,
+								},
+							},
+						});
+						currentAccessToken = issued.updatedAccessToken;
+						return Response.json(issued);
+					}
+					if (url === "https://issuer.example/status-lists/missing") {
+						return new Response("nope", { status: 500 });
+					}
+					throw new Error(`Unexpected fetch ${url}`);
+				},
+				async () => {
+					const received = await receiveCredentialAction({
+						walletDir,
+						offer: JSON.stringify(offer),
+					});
+					const shown = await showCredentialAction({
+						walletDir,
+						credentialId: received.credential.id,
+					});
+					expect(shown.status).toBeNull();
+					expect(shown.statusWarning).toContain(
+						"Status list fetch failed with status 500",
+					);
+					if (!shown.credential.status?.status_list) {
+						throw new Error("Expected stored credential status reference");
+					}
+					expect(shown.credential.status.status_list.uri).toBe(
+						"https://issuer.example/status-lists/missing",
+					);
 				},
 			);
 		} finally {

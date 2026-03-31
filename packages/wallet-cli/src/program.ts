@@ -6,6 +6,13 @@ import { listCredentialsAction } from "./actions/list.ts";
 import { presentCredentialAction } from "./actions/present.ts";
 import { receiveCredentialAction } from "./actions/receive.ts";
 import { showCredentialAction } from "./actions/show.ts";
+import {
+	formatCredentialDetails,
+	formatCredentialList,
+	formatCredentialSummary,
+	formatInitResult,
+	formatPresentationSummary,
+} from "./format.ts";
 
 export function createProgram(version: string): Command {
 	const program = new Command()
@@ -37,6 +44,7 @@ export function createProgram(version: string): Command {
 			"--holder-key-file <file>",
 			"Import an existing holder key from a JWK JSON file instead of generating one",
 		)
+		.option("--output <format>", "Output format: text or json", "text")
 		.addHelpText(
 			"after",
 			`
@@ -44,15 +52,28 @@ Examples:
   $ wallet-cli init --wallet-dir ./my-wallet
   $ wallet-cli init --wallet-dir ./my-wallet --alg EdDSA
   $ wallet-cli init --wallet-dir ./my-wallet --holder-key-file ./existing-key.jwk.json
+  $ wallet-cli init --wallet-dir ./my-wallet --output json
 
 Notes:
+  - Default output is a concise text summary; use --output json for full details
   - --holder-key-file accepts either a bare private JWK or an object with privateJwk/publicJwk fields
   - If the key algorithm cannot be inferred from the JWK, pass --alg explicitly`,
 		)
 		.action(async (options) => {
 			verbose(`Initializing wallet in ${options.walletDir}`);
 			const result = await initWalletAction(options);
-			printResult(result, "json");
+			if (options.output === "json") {
+				printResult(result, "json");
+				return;
+			}
+			printResult(
+				formatInitResult({
+					walletDir: options.walletDir,
+					holderKey: result.holderKey,
+					imported: result.imported,
+				}),
+				"text",
+			);
 		});
 
 	program
@@ -70,6 +91,7 @@ Notes:
 			"--credential-file <file>",
 			"Path to a credential file (compact dc+sd-jwt text)",
 		)
+		.option("--output <format>", "Output format: text or json", "text")
 		.addHelpText(
 			"after",
 			`
@@ -82,14 +104,27 @@ Examples:
       --wallet-dir ./my-wallet \\
       --credential 'eyJ...'
 
+  $ wallet-cli import \
+      --wallet-dir ./my-wallet \
+      --credential-file ./issuer/credential.txt \
+      --output json
+
 Notes:
+  - Default output is a concise text summary; use --output json for full details
   - Provide exactly one of --credential or --credential-file
   - This command imports an already-issued compact dc+sd-jwt; it does not resolve credential offers`,
 		)
 		.action(async (options) => {
 			verbose(`Importing credential`);
 			const result = await importCredentialAction(options);
-			printResult(result, "json");
+			if (options.output === "json") {
+				printResult(result, "json");
+				return;
+			}
+			printResult(
+				formatCredentialSummary("Imported", result.credential),
+				"text",
+			);
 		});
 
 	program
@@ -105,6 +140,7 @@ Notes:
 			"--offer <value>",
 			"Credential offer JSON or an openid-credential-offer:// URI",
 		)
+		.option("--output <format>", "Output format: text or json", "text")
 		.addHelpText(
 			"after",
 			`
@@ -117,7 +153,13 @@ Examples:
       --wallet-dir ./my-wallet \
       --offer '{"credential_issuer":"https://issuer.example",...}'
 
+  $ wallet-cli receive \
+      --wallet-dir ./my-wallet \
+      --offer 'openid-credential-offer://?credential_offer=...' \
+      --output json
+
 Notes:
+  - Default output is a concise text summary; use --output json for full details
   - Supports by-value credential_offer and by-reference credential_offer_uri inputs
   - Resolves issuer metadata from credential_issuer via /.well-known/openid-credential-issuer[issuer-path]
   - Uses token_endpoint, credential_endpoint, and optional nonce_endpoint from the fetched metadata
@@ -128,7 +170,14 @@ Notes:
 		.action(async (options) => {
 			verbose(`Receiving credential into ${options.walletDir}`);
 			const result = await receiveCredentialAction(options);
-			printResult(result, "json");
+			if (options.output === "json") {
+				printResult(result, "json");
+				return;
+			}
+			printResult(
+				formatCredentialSummary("Received", result.credential),
+				"text",
+			);
 		});
 
 	program
@@ -146,18 +195,24 @@ Notes:
 			"--issuer <url>",
 			"Filter by issuer identifier URL (e.g. https://issuer.example)",
 		)
+		.option("--output <format>", "Output format: text or json", "text")
 		.addHelpText(
 			"after",
 			`
 Examples:
   $ wallet-cli list --wallet-dir ./my-wallet
   $ wallet-cli list --wallet-dir ./my-wallet --vct urn:eudi:pid:1
-  $ wallet-cli list --wallet-dir ./my-wallet --issuer https://issuer.example`,
+  $ wallet-cli list --wallet-dir ./my-wallet --issuer https://issuer.example
+  $ wallet-cli list --wallet-dir ./my-wallet --output json`,
 		)
 		.action(async (options) => {
 			verbose(`Listing credentials in ${options.walletDir}`);
 			const result = await listCredentialsAction(options);
-			printResult(result, "json");
+			if (options.output === "json") {
+				printResult(result, "json");
+				return;
+			}
+			printResult(formatCredentialList(result.credentials), "text");
 		});
 
 	program
@@ -172,32 +227,46 @@ Examples:
 			"Credential id (from list output) to display",
 		)
 		.option(
-			"--resolve-status",
-			"Fetch and verify the credential status list on demand",
-		)
-		.option(
 			"--output <format>",
-			"Output format: json or raw (compact sd-jwt text)",
-			"json",
+			"Output format: text, json, or raw (compact sd-jwt text)",
+			"text",
 		)
 		.addHelpText(
 			"after",
 			`
 Examples:
   $ wallet-cli show --wallet-dir ./my-wallet --credential-id <id>
-  $ wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --resolve-status
   $ wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output raw
+  $ wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output json
 
 Notes:
-  - --resolve-status fetches and verifies the credential's IETF status list JWT on demand
+  - Status resolution runs automatically when the stored credential has a status reference
+  - If status resolution fails, the credential is still shown and a warning is printed
+  - Default output is a sectioned text view; use --output json for full details
   - --output raw prints only the compact sd-jwt credential text
-  - --resolve-status cannot be combined with --output raw`,
+		`,
 		)
 		.action(async (options) => {
 			verbose(`Showing credential ${options.credentialId}`);
 			const result = await showCredentialAction(options);
 			if (options.output === "raw") {
 				process.stdout.write(`${result.credential.compactSdJwt}\n`);
+				return;
+			}
+			if (result.statusWarning) {
+				process.stderr.write(
+					`Warning: failed to resolve credential status: ${result.statusWarning}\n`,
+				);
+			}
+			if (options.output === "text") {
+				printResult(
+					formatCredentialDetails({
+						credential: result.credential,
+						status: result.status,
+						statusWarning: result.statusWarning,
+					}),
+					"text",
+				);
 				return;
 			}
 			printResult(result, options.output);
@@ -226,8 +295,8 @@ Notes:
 		)
 		.option(
 			"--output <format>",
-			"Output format: json or raw (vp_token text only)",
-			"json",
+			"Output format: text, json, or raw (vp_token text only)",
+			"text",
 		)
 		.addHelpText(
 			"after",
@@ -248,7 +317,13 @@ Examples:
       --request 'openid4vp://authorize?...' \
       --output raw
 
+  $ wallet-cli present \
+      --wallet-dir ./my-wallet \
+      --request 'openid4vp://authorize?...' \
+      --output json
+
 Notes:
+  - Default output is a concise text summary; use --output json for full details
   - --output raw prints only the vp_token
   - direct_post and direct_post.jwt requests are auto-submitted unless --dry-run is set
   - If multiple credentials match and --credential-id is omitted, the CLI prompts in a TTY and errors in non-interactive environments`,
@@ -258,6 +333,10 @@ Notes:
 			const result = await presentCredentialAction(options);
 			if (options.output === "raw") {
 				process.stdout.write(`${result.vpToken}\n`);
+				return;
+			}
+			if (options.output === "text") {
+				printResult(formatPresentationSummary(result), "text");
 				return;
 			}
 			printResult(result, options.output);

@@ -19,11 +19,11 @@ export async function initWalletAction(rawOptions: unknown) {
 			publicJwk,
 			algorithm,
 		});
-		return { holderKey };
+		return { holderKey, imported: true };
 	}
 
 	const holderKey = await wallet.getOrCreateHolderKey(options.alg);
-	return { holderKey };
+	return { holderKey, imported: false };
 }
 
 function detectAlgorithm(

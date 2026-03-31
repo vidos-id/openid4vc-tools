@@ -42,14 +42,17 @@ Initialize a wallet directory and create (or import) a holder key.
 wallet-cli init --wallet-dir ./my-wallet
 wallet-cli init --wallet-dir ./my-wallet --alg EdDSA
 wallet-cli init --wallet-dir ./my-wallet --holder-key-file ./existing-key.jwk.json
+wallet-cli init --wallet-dir ./my-wallet --output json
 ```
 
 Options:
 - `--wallet-dir <dir>` (required) - path to the wallet directory
 - `--alg <algorithm>` - holder key algorithm: ES256, ES384, or EdDSA (default: ES256)
 - `--holder-key-file <file>` - import an existing JWK private key instead of generating
+- `--output <format>` - `text` or `json` (default: `text`)
 
 Notes:
+- default output is a concise text summary; use `--output json` for full details
 - `--holder-key-file` accepts either a bare private JWK or an object containing `privateJwk` / `publicJwk`
 - if the key algorithm cannot be inferred from the JWK, pass `--alg` explicitly
 
@@ -67,14 +70,22 @@ wallet-cli import \
 wallet-cli import \
   --wallet-dir ./my-wallet \
   --credential 'eyJhbGciOi...'
+
+# Full JSON output
+wallet-cli import \
+  --wallet-dir ./my-wallet \
+  --credential-file ./issuer/credential.txt \
+  --output json
 ```
 
 Options:
 - `--wallet-dir <dir>` (required) - path to the wallet directory
 - `--credential <value>` - inline credential text (compact `dc+sd-jwt`)
 - `--credential-file <file>` - path to a credential file
+- `--output <format>` - `text` or `json` (default: `text`)
 
 Notes:
+- default output is a concise text summary; use `--output json` for full details
 - provide exactly one of `--credential` or `--credential-file`
 
 `import` remains a local credential-blob import command only; it does not resolve credential offers.
@@ -102,11 +113,18 @@ wallet-cli receive \
 wallet-cli receive \
   --wallet-dir ./my-wallet \
   --offer 'openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffers%2Fperson-1'
+
+# Full JSON output
+wallet-cli receive \
+  --wallet-dir ./my-wallet \
+  --offer 'openid-credential-offer://?credential_offer=...' \
+  --output json
 ```
 
 Options:
 - `--wallet-dir <dir>` (required) - path to the wallet directory
 - `--offer <value>` (required) - credential offer JSON or `openid-credential-offer://` URI
+- `--output <format>` - `text` or `json` (default: `text`)
 
 Endpoint resolution and API usage:
 - parse the credential offer input
@@ -126,6 +144,7 @@ Examples of metadata resolution:
 This means non-standard endpoint paths are fine as long as the issuer metadata advertises them. For example, a token endpoint at `/token` works if the fetched metadata contains `"token_endpoint": "https://issuer.example/token"`.
 
 Notes:
+- default output is a concise text summary; use `--output json` for full details
 - supports by-value `credential_offer` and by-reference `credential_offer_uri`
 - resolves API endpoints from issuer metadata; it does not guess endpoint paths and does not expose manual endpoint overrides
 - current flow covers the minimal OpenID4VCI subset: pre-authorized code, JWT proof, and single `dc+sd-jwt` issuance
@@ -141,12 +160,17 @@ List stored credentials.
 wallet-cli list --wallet-dir ./my-wallet
 wallet-cli list --wallet-dir ./my-wallet --vct urn:eudi:pid:1
 wallet-cli list --wallet-dir ./my-wallet --issuer https://issuer.example
+wallet-cli list --wallet-dir ./my-wallet --output json
 ```
 
 Options:
 - `--wallet-dir <dir>` (required) - path to the wallet directory
 - `--vct <uri>` - filter by Verifiable Credential Type
 - `--issuer <url>` - filter by issuer URL
+- `--output <format>` - `text` or `json` (default: `text`)
+
+Notes:
+- default output is a count plus one compact row per credential; use `--output json` for full details
 
 ### `show`
 
@@ -154,29 +178,28 @@ Show a single stored credential by id.
 
 ```bash
 wallet-cli show --wallet-dir ./my-wallet --credential-id <id>
-wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --resolve-status
 wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output raw
+wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output json
 ```
 
 Options:
 - `--wallet-dir <dir>` (required) - path to the wallet directory
 - `--credential-id <id>` (required) - credential id (from `list` output)
-- `--resolve-status` - fetch and verify the credential status list on demand
-- `--output <format>` - `json` or `raw` (`raw` prints only the compact `sd-jwt` text)
+- `--output <format>` - `text`, `json`, or `raw` (`raw` prints only the compact `sd-jwt` text; default: `text`)
 
 Notes:
-- `--resolve-status` resolves the credential's IETF status list JWT on demand and returns the decoded status result
-- `--resolve-status` cannot be combined with `--output raw`
+- status resolution runs automatically when the credential contains a `status.status_list` reference
+- if status resolution fails, the credential is still shown and the CLI prints a warning to stderr
+- default output is a sectioned text view; use `--output json` for full details
 
 #### Status Resolution
 
-Use `show --resolve-status` when the stored credential contains a `status.status_list` reference and you want the CLI to fetch, verify, and decode the IETF status list JWT.
+`show` automatically attempts to fetch, verify, and decode the IETF status list JWT when the stored credential contains a `status.status_list` reference.
 
 ```bash
 wallet-cli show \
   --wallet-dir ./my-wallet \
-  --credential-id cred_123 \
-  --resolve-status
+  --credential-id cred_123
 ```
 
 Example response excerpt:
@@ -247,6 +270,12 @@ wallet-cli present \
   --wallet-dir ./my-wallet \
   --request 'openid4vp://authorize?...' \
   --output raw
+
+# Full JSON output
+wallet-cli present \
+  --wallet-dir ./my-wallet \
+  --request 'openid4vp://authorize?...' \
+  --output json
 ```
 
 Options:
@@ -254,7 +283,7 @@ Options:
 - `--request <value>` (required) - OpenID4VP request JSON or `openid4vp://` URL
 - `--credential-id <id>` - use a specific credential (skip selection prompt)
 - `--dry-run` - build the response but don't submit it
-- `--output <format>` - `json` or `raw` (`raw` prints only the `vp_token`)
+- `--output <format>` - `text`, `json`, or `raw` (`raw` prints only the `vp_token`; default: `text`)
 
 ## Global options
 
@@ -269,7 +298,7 @@ Options:
 - only by-value DCQL requests are supported
 - `receive` resolves issuer metadata from `/.well-known/openid-credential-issuer[issuer-path]` and then uses the advertised endpoints from that metadata
 - `receive` supports the minimal OID4VCI subset: by-value offers, by-reference `credential_offer_uri`, pre-authorized-code, JWT proof, and single `dc+sd-jwt` issuance
-- `show --resolve-status` fetches, verifies, and decodes IETF status list JWTs for stored credentials that include a `status.status_list` reference
+- `show` automatically fetches, verifies, and decodes IETF status list JWTs for stored credentials that include a `status.status_list` reference
 - credentials are issued with [`@vidos-id/issuer-cli`](../issuer-cli/)
 - for remote inputs, use `--request "$(curl -fsSL <raw-url>)"` instead of relying on a local example file
 
