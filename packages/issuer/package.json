@@ -8,7 +8,9 @@
 	},
 	"type": "module",
 	"scripts": {
-		"test": "bun test"
+		"build": "tsc --noEmit --project ../../tsconfig.json",
+		"check-types": "tsc --noEmit --project ../../tsconfig.json",
+		"test": "bun test --pass-with-no-tests"
 	},
 	"main": "./src/index.ts",
 	"module": "./src/index.ts",

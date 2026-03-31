@@ -18,7 +18,9 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "bun build src/index.ts --target=bun --outdir=../../dist/issuer-cli --entry-naming=[name].js --define __CLI_VERSION__='\"'$npm_package_version'\"'"
+		"build": "bun build src/index.ts --target=bun --outdir=../../dist/issuer-cli --entry-naming=[name].js --define __CLI_VERSION__='\"'$npm_package_version'\"'",
+		"check-types": "tsc --noEmit --project ../../tsconfig.json",
+		"test": "bun test --pass-with-no-tests"
 	},
 	"dependencies": {
 		"@vidos-id/cli-common": "workspace:*",
