@@ -1,5 +1,6 @@
 # dependencies (bun install)
 node_modules
+.turbo
 
 # output
 out
@@ -17,10 +18,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # dotenv environment variable files
 .env
+.env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
 # caches
 .eslintcache
@@ -32,3 +33,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# local app state
+.data/
+.tmp/
