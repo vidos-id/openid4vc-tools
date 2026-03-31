@@ -111,6 +111,8 @@ bun packages/issuer-cli/src/index.ts --help
 
 ## Quick Start
 
+Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. For wallet operations, see the detailed [`@vidos-id/wallet-cli` README](packages/wallet-cli/README.md) and use `wallet-cli --help` or `wallet-cli <command> --help` to inspect available commands.
+
 The full issue-hold-present flow in 4 commands:
 
 ```bash
@@ -153,33 +155,21 @@ Or from an `openid4vp://` authorization URL:
   --request 'openid4vp://authorize?client_id=https%3A%2F%2Fverifier.example&nonce=n-1&response_type=vp_token&dcql_query=...'
 ```
 
-See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](packages/wallet-cli/) for full command reference.
+See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](packages/wallet-cli/README.md) for full command reference.
 
 ## Minimal OID4VCI
 
-Supported subset:
+Wallet-side offer redemption is exposed through `wallet-cli receive`.
 
-- by-value `credential_offer` JSON and `openid-credential-offer://` URIs
-- pre-authorized-code flow only
-- issuer metadata discovery + nonce endpoint usage
-- JWT proofs with `typ=openid4vci-proof+jwt`
-- single `dc+sd-jwt` credential issuance and wallet storage
-
-Explicitly out of scope in this repo:
-
-- authorization-code flow
-- DPoP
-- wallet attestation / key attestation
-- `tx_code`
-- deferred, encrypted, or batch issuance
-
-CLI example:
+Example:
 
 ```bash
 wallet-cli receive \
   --wallet-dir .demo/wallet \
   --offer 'openid-credential-offer://?credential_offer=...'
 ```
+
+For supported inputs, behavior, and command options, see [`packages/wallet-cli/README.md`](packages/wallet-cli/README.md) or run `wallet-cli receive --help`.
 
 ## Algorithms
 

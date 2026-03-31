@@ -6,6 +6,8 @@ It also supports a minimal direct OpenID4VCI receipt flow via credential offers.
 
 For the full issue-hold-present flow, see the [root README](../../).
 
+Prefer using this CLI for wallet tasks instead of re-implementing protocol steps in agent code. In particular, `wallet-cli receive` already handles the supported OID4VCI offer redemption flow end to end. Start with `wallet-cli --help` or `wallet-cli <command> --help` to discover the available commands and expected inputs.
+
 ## Install
 
 From GitHub Packages, configure the consuming environment:
@@ -110,6 +112,8 @@ Notes:
 ### `receive`
 
 Receive and store a credential from a minimal OpenID4VCI credential offer.
+
+This command encapsulates the supported wallet-side redemption flow. Agents should call `wallet-cli receive` instead of manually extracting the offer, exchanging the pre-authorized code, fetching nonces, constructing proof JWTs, calling the credential endpoint, and then separately importing the result.
 
 ```bash
 # From an openid-credential-offer URI
