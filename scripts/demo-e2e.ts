@@ -31,7 +31,7 @@ async function createProofJwt(input: {
 const demoClaims: ClaimSet = {
 	given_name: "Ada",
 	family_name: "Lovelace",
-	birth_date: "1815-12-10",
+	birthdate: "1815-12-10",
 	address: {
 		locality: "London",
 		country: "GB",
