@@ -2,7 +2,6 @@ import { printResult, setVerbose, verbose } from "@vidos-id/cli-common";
 import { Command } from "commander";
 import { importCredentialAction } from "./actions/import.ts";
 import { initWalletAction } from "./actions/init.ts";
-import { interactiveWalletAction } from "./actions/interactive.ts";
 import { listCredentialsAction } from "./actions/list.ts";
 import { presentCredentialAction } from "./actions/present.ts";
 import { receiveCredentialAction } from "./actions/receive.ts";
@@ -26,16 +25,12 @@ export function createProgram(version: string): Command {
 			"after",
 			"\nInteractive mode:\n  Run `wallet-cli` without a subcommand to open the prompt-driven workflow.",
 		)
-		.option("--wallet-dir <dir>", "Wallet directory for interactive mode")
 		.option("--verbose", "Enable verbose logging to stderr", false)
 		.hook("preAction", (_thisCommand, actionCommand) => {
 			const opts = actionCommand.optsWithGlobals();
 			if (opts.verbose) {
 				setVerbose(true);
 			}
-		})
-		.action(async (options) => {
-			await interactiveWalletAction(options);
 		});
 
 	program

@@ -1,15 +1,9 @@
 import { generateIssuerTrustMaterial } from "@vidos-id/issuer";
-import { and, desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createAuth, type IssuerWebAuth } from "./auth.ts";
 import { type IssuerWebEnv, readIssuerWebEnv } from "./config.ts";
 import { createDatabase, type IssuerWebDatabase } from "./db/index.ts";
-import {
-	credentialTemplates,
-	issuerConfig,
-	issuerSigningKeys,
-	statusLists,
-	users,
-} from "./db/schema.ts";
+import { issuerConfig, issuerSigningKeys, statusLists } from "./db/schema.ts";
 import { signStatusList } from "./services/support.ts";
 
 export type AppContext = {
@@ -69,71 +63,6 @@ async function ensureBootstrapState(db: IssuerWebDatabase, env: IssuerWebEnv) {
 			createdAt: now,
 			updatedAt: now,
 		});
-	}
-
-	const predefinedTemplates = await db.query.credentialTemplates.findMany({
-		where: and(
-			eq(credentialTemplates.kind, "predefined"),
-			eq(credentialTemplates.isActive, true),
-		),
-		orderBy: desc(credentialTemplates.createdAt),
-	});
-	if (predefinedTemplates.length === 0) {
-		const systemUserId = "system-user";
-		const systemUser = await db.query.users.findFirst({
-			where: eq(users.id, systemUserId),
-		});
-		if (!systemUser) {
-			await db.insert(users).values({
-				id: systemUserId,
-				name: "System",
-				email: "system@issuer-web.local",
-				username: "system",
-				isAnonymous: false,
-				emailVerified: true,
-				image: null,
-				createdAt: now,
-				updatedAt: now,
-			});
-		}
-
-		await db.insert(credentialTemplates).values([
-			{
-				id: crypto.randomUUID(),
-				ownerUserId: systemUserId,
-				name: "EUDI PID (SD-JWT)",
-				kind: "predefined",
-				credentialConfigurationId: "eu.europa.ec.eudi.pid.1",
-				vct: "eu.europa.ec.eudi.pid.1",
-				defaultClaimsJson: JSON.stringify({
-					family_name: "Lovelace",
-					given_name: "Ada",
-					birth_date: "1815-12-10",
-					age_over_18: true,
-					family_name_birth: "Byron",
-					given_name_birth: "Augusta Ada",
-					birth_country: "GB",
-					birth_city: "London",
-					resident_address: "12 St. James's Square, London",
-					resident_country: "GB",
-					resident_city: "London",
-					resident_postal_code: "SW1Y 4LB",
-					resident_street: "St. James's Square",
-					resident_house_number: "12",
-					gender: 2,
-					nationality: "GB",
-					issuance_date: "2026-01-01",
-					expiry_date: "2031-01-01",
-					issuing_authority: "GB",
-					issuing_country: "GB",
-					document_number: "PID-GB-1815-ADA-01",
-					administrative_number: "GB-ADM-0001",
-				}),
-				isActive: true,
-				createdAt: now,
-				updatedAt: now,
-			},
-		]);
 	}
 
 	const bootstrapApp = { env, db, auth: null as never };

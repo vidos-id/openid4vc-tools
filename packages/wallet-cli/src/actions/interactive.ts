@@ -15,6 +15,19 @@ import { presentCredentialAction } from "./present.ts";
 import { receiveCredentialAction } from "./receive.ts";
 import { showCredentialAction } from "./show.ts";
 
+const interactiveChoices = [
+	{ label: "Receive credential offer", value: "receive" },
+	{ label: "List credentials", value: "list" },
+	{ label: "Show credential", value: "show" },
+	{ label: "Present credential", value: "present" },
+	{ label: "Import raw credential", value: "import" },
+	{ label: "Reinitialize wallet", value: "init" },
+	{ label: "Switch wallet directory", value: "switch" },
+	{ label: "Exit", value: "exit" },
+] as const;
+
+type InteractiveChoice = (typeof interactiveChoices)[number]["value"];
+
 export async function interactiveWalletAction(rawOptions: unknown) {
 	if (!process.stdin.isTTY || !process.stdout.isTTY) {
 		throw new Error(
@@ -30,113 +43,22 @@ export async function interactiveWalletAction(rawOptions: unknown) {
 
 	try {
 		while (true) {
-			await ensureWalletReady(prompt, walletDir);
-			const choice = await prompt.choose("Wallet CLI", [
-				{ label: "Receive credential offer", value: "receive" },
-				{ label: "List credentials", value: "list" },
-				{ label: "Show credential", value: "show" },
-				{ label: "Present credential", value: "present" },
-				{ label: "Import raw credential", value: "import" },
-				{ label: "Reinitialize wallet", value: "init" },
-				{ label: "Switch wallet directory", value: "switch" },
-				{ label: "Exit", value: "exit" },
-			]);
+			const choice = await prompt.choose("Wallet CLI", [...interactiveChoices]);
 
 			stdout.write("\n");
 
-			switch (choice) {
-				case "exit":
+			try {
+				const nextWalletDir = await runInteractiveChoice({
+					prompt,
+					walletDir,
+					choice,
+				});
+				if (nextWalletDir === undefined) {
 					return;
-				case "switch": {
-					walletDir = await prompt.text("Wallet directory", {
-						defaultValue: walletDir,
-					});
-					stdout.write(`Using wallet ${walletDir}.\n\n`);
-					break;
 				}
-				case "init": {
-					const alg = await prompt.choose("Holder key algorithm", [
-						{ label: "ES256", value: "ES256" },
-						{ label: "ES384", value: "ES384" },
-						{ label: "EdDSA", value: "EdDSA" },
-					]);
-					const result = await initWalletAction({ walletDir, alg });
-					stdout.write(
-						`${formatInitResult({ walletDir, holderKey: result.holderKey, imported: result.imported })}\n\n`,
-					);
-					break;
-				}
-				case "receive": {
-					const offer = await prompt.text("Credential offer or offer URI");
-					const result = await receiveCredentialAction({ walletDir, offer });
-					stdout.write(
-						`${formatCredentialSummary("Received", result.credential)}\n\n`,
-					);
-					break;
-				}
-				case "import": {
-					const credential = await prompt.text("Compact dc+sd-jwt credential");
-					const result = await importCredentialAction({
-						walletDir,
-						credential,
-					});
-					stdout.write(
-						`${formatCredentialSummary("Imported", result.credential)}\n\n`,
-					);
-					break;
-				}
-				case "list": {
-					const result = await listCredentialsAction({ walletDir });
-					stdout.write(`${formatCredentialList(result.credentials)}\n\n`);
-					break;
-				}
-				case "show": {
-					const list = await listCredentialsAction({ walletDir });
-					if (list.credentials.length === 0) {
-						stdout.write("0 credentials found\n\n");
-						break;
-					}
-					const credentialId = await prompt.choose(
-						"Select a credential",
-						list.credentials.map((credential) => ({
-							label: `${credential.id} | ${credential.vct} | ${credential.issuer}`,
-							value: credential.id,
-						})),
-					);
-					const result = await showCredentialAction({
-						walletDir,
-						credentialId,
-					});
-					if (result.statusWarning) {
-						process.stderr.write(
-							`Warning: failed to resolve credential status: ${result.statusWarning}\n`,
-						);
-					}
-					stdout.write(
-						`${formatCredentialDetails({
-							credential: result.credential,
-							status: result.status,
-							statusWarning: result.statusWarning,
-						})}\n\n`,
-					);
-					break;
-				}
-				case "present": {
-					const request = await prompt.text(
-						"OpenID4VP request JSON or openid4vp:// URL",
-					);
-					const dryRun = await prompt.confirm(
-						"Build the presentation without submitting it?",
-						false,
-					);
-					const result = await presentCredentialAction({
-						walletDir,
-						request,
-						dryRun,
-					});
-					stdout.write(`${formatPresentationSummary(result)}\n\n`);
-					break;
-				}
+				walletDir = nextWalletDir;
+			} catch (error) {
+				process.stderr.write(`${formatInteractiveError(error)}\n\n`);
 			}
 		}
 	} finally {
@@ -144,14 +66,130 @@ export async function interactiveWalletAction(rawOptions: unknown) {
 	}
 }
 
+export async function runInteractiveChoice({
+	prompt,
+	walletDir,
+	choice,
+}: {
+	prompt: PromptSession;
+	walletDir: string;
+	choice: InteractiveChoice;
+}): Promise<string | undefined> {
+	switch (choice) {
+		case "exit":
+			return undefined;
+		case "switch": {
+			const nextWalletDir = await prompt.text("Wallet directory", {
+				defaultValue: walletDir,
+			});
+			stdout.write(`Using wallet ${nextWalletDir}.\n\n`);
+			return nextWalletDir;
+		}
+		case "init": {
+			const alg = await prompt.choose("Holder key algorithm", [
+				{ label: "ES256", value: "ES256" },
+				{ label: "ES384", value: "ES384" },
+				{ label: "EdDSA", value: "EdDSA" },
+			]);
+			const result = await initWalletAction({ walletDir, alg });
+			stdout.write(
+				`${formatInitResult({ walletDir, holderKey: result.holderKey, imported: result.imported })}\n\n`,
+			);
+			return walletDir;
+		}
+		case "receive": {
+			if (!(await ensureWalletReady(prompt, walletDir))) {
+				return walletDir;
+			}
+			const offer = await prompt.text("Credential offer or offer URI");
+			const result = await receiveCredentialAction({ walletDir, offer });
+			stdout.write(
+				`${formatCredentialSummary("Received", result.credential)}\n\n`,
+			);
+			return walletDir;
+		}
+		case "import": {
+			if (!(await ensureWalletReady(prompt, walletDir))) {
+				return walletDir;
+			}
+			const credential = await prompt.text("Compact dc+sd-jwt credential");
+			const result = await importCredentialAction({
+				walletDir,
+				credential,
+			});
+			stdout.write(
+				`${formatCredentialSummary("Imported", result.credential)}\n\n`,
+			);
+			return walletDir;
+		}
+		case "list": {
+			if (!(await ensureWalletReady(prompt, walletDir))) {
+				return walletDir;
+			}
+			const result = await listCredentialsAction({ walletDir });
+			stdout.write(`${formatCredentialList(result.credentials)}\n\n`);
+			return walletDir;
+		}
+		case "show": {
+			if (!(await ensureWalletReady(prompt, walletDir))) {
+				return walletDir;
+			}
+			const list = await listCredentialsAction({ walletDir });
+			if (list.credentials.length === 0) {
+				stdout.write("0 credentials found\n\n");
+				return walletDir;
+			}
+			const credentialId = await prompt.choose(
+				"Select a credential",
+				list.credentials.map((credential) => ({
+					label: `${credential.id} | ${credential.vct} | ${credential.issuer}`,
+					value: credential.id,
+				})),
+			);
+			const result = await showCredentialAction({
+				walletDir,
+				credentialId,
+			});
+			if (result.statusWarning) {
+				process.stderr.write(
+					`Warning: failed to resolve credential status: ${result.statusWarning}\n`,
+				);
+			}
+			stdout.write(
+				`${formatCredentialDetails({
+					credential: result.credential,
+					status: result.status,
+					statusWarning: result.statusWarning,
+				})}\n\n`,
+			);
+			return walletDir;
+		}
+		case "present": {
+			if (!(await ensureWalletReady(prompt, walletDir))) {
+				return walletDir;
+			}
+			const request = await prompt.text(
+				"OpenID4VP request JSON or openid4vp:// URL",
+			);
+			const result = await presentCredentialAction({
+				walletDir,
+				request,
+			});
+			stdout.write(`${formatPresentationSummary(result)}\n\n`);
+			return walletDir;
+		}
+	}
+}
+
 async function ensureWalletReady(prompt: PromptSession, walletDir: string) {
 	if (await walletExists(walletDir)) {
-		return;
+		return true;
 	}
 	stdout.write(`Wallet ${walletDir} is not initialized yet.\n`);
 	const createNow = await prompt.confirm("Create it now?", true);
 	if (!createNow) {
-		throw new Error(`Wallet ${walletDir} is required to continue.`);
+		stdout.write("Action cancelled.\n\n");
+		return false;
 	}
 	const alg = await prompt.choose("Holder key algorithm", [
 		{ label: "ES256", value: "ES256" },
@@ -162,6 +200,7 @@ async function ensureWalletReady(prompt: PromptSession, walletDir: string) {
 	stdout.write(
 		`${formatInitResult({ walletDir, holderKey: result.holderKey, imported: result.imported })}\n\n`,
 	);
+	return true;
 }
 
 async function walletExists(walletDir: string) {
@@ -173,4 +212,11 @@ async function walletExists(walletDir: string) {
 	} catch {
 		return false;
 	}
+}
+
+function formatInteractiveError(error: unknown): string {
+	if (error instanceof Error && error.message.trim()) {
+		return error.message;
+	}
+	return String(error);
 }

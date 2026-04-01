@@ -7,6 +7,7 @@ import {
 	type QueryCredentialMatches,
 	Wallet,
 } from "@vidos-id/wallet";
+import inquirer from "inquirer";
 import { exportJWK, generateKeyPair } from "jose";
 import {
 	type AccessTokenRecord,
@@ -16,9 +17,13 @@ import {
 	type NonceRecord,
 	type PreAuthorizedGrantRecord,
 } from "../../issuer/src/index.ts";
+import { runInteractiveChoice } from "./actions/interactive.ts";
 import {
+	createProgram,
 	importCredentialAction,
 	initWalletAction,
+	interactiveWalletAction,
+	parseInteractiveCliOptions,
 	presentCredentialAction,
 	receiveCredentialAction,
 	showCredentialAction,
@@ -149,6 +154,69 @@ describe("wallet-cli", () => {
 			expect(await readdir(walletDir)).toContain("holder-key.json");
 		} finally {
 			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("subcommands still parse --wallet-dir", async () => {
+		const walletDir = await mkdtemp(join(tmpdir(), "wallet-cli-program-init-"));
+		try {
+			await createProgram("0.0.0").parseAsync([
+				"bun",
+				"wallet-cli",
+				"init",
+				"--wallet-dir",
+				walletDir,
+			]);
+			expect(await readdir(walletDir)).toContain("holder-key.json");
+		} finally {
+			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("parses interactive wallet-dir from argv", () => {
+		expect(
+			parseInteractiveCliOptions([
+				"bun",
+				"wallet-cli",
+				"--wallet-dir",
+				"./wallet-data",
+				"--verbose",
+			]),
+		).toEqual({ walletDir: "./wallet-data", verbose: true });
+		expect(
+			parseInteractiveCliOptions([
+				"bun",
+				"wallet-cli",
+				"--wallet-dir=./wallet-data",
+			]),
+		).toEqual({ walletDir: "./wallet-data" });
+	});
+
+	test("interactive action cancellation does not throw for missing wallet", async () => {
+		const writes: string[] = [];
+		const originalWrite = process.stdout.write.bind(process.stdout);
+		process.stdout.write = ((chunk: string | Uint8Array) => {
+			writes.push(String(chunk));
+			return true;
+		}) as typeof process.stdout.write;
+		try {
+			const walletDir = join(tmpdir(), "wallet-cli-missing-wallet");
+			const prompt = {
+				confirm: async () => false,
+				text: async () => "",
+				choose: async () => "ES256",
+			} as unknown as Parameters<typeof runInteractiveChoice>[0]["prompt"];
+
+			await expect(
+				runInteractiveChoice({
+					prompt,
+					walletDir,
+					choice: "list",
+				}),
+			).resolves.toBe(walletDir);
+			expect(writes.join("")).toContain("Action cancelled.");
+		} finally {
+			process.stdout.write = originalWrite;
 		}
 	});
 
@@ -516,6 +584,124 @@ describe("wallet-cli", () => {
 			);
 			expect(result.vpToken.length).toBeGreaterThan(0);
 		} finally {
+			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("accepts a quoted openid4vp authorization URL", async () => {
+		const walletDir = await mkdtemp(
+			join(tmpdir(), "wallet-cli-openid4vp-quoted-"),
+		);
+		try {
+			const storage = new FileSystemWalletStorage(walletDir);
+			const wallet = new Wallet(storage);
+			const issuer = await createIssuerFixture();
+			const holderKey = await wallet.getOrCreateHolderKey();
+
+			const credential = await issueDemoCredential({
+				issuer: issuer.issuer,
+				issuerPrivateJwk: issuer.privateJwk,
+				holderPublicJwk: holderKey.publicJwk as never,
+				vct: "https://example.com/PersonCredential",
+				claims: { given_name: "Ada" },
+				disclosureFrame: { _sd: ["given_name"] },
+				issuedAt: 1,
+			});
+
+			await importCredentialAction({
+				walletDir,
+				credential,
+			});
+
+			const url = `openid4vp://authorize?client_id=${encodeURIComponent("https://verifier.example")}&nonce=nonce-1&response_type=vp_token&dcql_query=${encodeURIComponent(JSON.stringify({ credentials: [{ id: "person_credential", format: "dc+sd-jwt", meta: { vct_values: ["https://example.com/PersonCredential"] }, claims: [{ path: ["given_name"] }] }] }))}`;
+			const result = await presentCredentialAction({
+				walletDir,
+				request: `"${url}"`,
+			});
+
+			expect(result.matchedCredentials[0]?.vct).toBe(
+				"https://example.com/PersonCredential",
+			);
+			expect(result.vpToken.length).toBeGreaterThan(0);
+		} finally {
+			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("interactive mode keeps running after presentation errors", async () => {
+		const walletDir = await mkdtemp(join(tmpdir(), "wallet-cli-interactive-"));
+		const originalPrompt = inquirer.prompt;
+		const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+		const originalStderrWrite = process.stderr.write.bind(process.stderr);
+		const stdinDescriptor = Object.getOwnPropertyDescriptor(
+			process.stdin,
+			"isTTY",
+		);
+		const stdoutDescriptor = Object.getOwnPropertyDescriptor(
+			process.stdout,
+			"isTTY",
+		);
+		const stderrWrites: string[] = [];
+		const answers = [
+			{ value: walletDir },
+			{ value: "present" },
+			{
+				value: JSON.stringify({
+					client_id: "https://verifier.example",
+					nonce: "nonce-1",
+					dcql_query: {
+						credentials: [
+							{
+								id: "person_credential",
+								format: "dc+sd-jwt",
+								meta: {
+									vct_values: ["https://example.com/PersonCredential"],
+								},
+								claims: [{ path: ["given_name"] }],
+							},
+						],
+					},
+				}),
+			},
+			{ value: "exit" },
+		];
+		try {
+			await initWalletAction({ walletDir });
+			Object.defineProperty(process.stdin, "isTTY", {
+				configurable: true,
+				value: true,
+			});
+			Object.defineProperty(process.stdout, "isTTY", {
+				configurable: true,
+				value: true,
+			});
+			inquirer.prompt = (async () => {
+				const answer = answers.shift();
+				if (!answer) {
+					throw new Error("Unexpected prompt");
+				}
+				return answer;
+			}) as unknown as typeof inquirer.prompt;
+			process.stdout.write = (() => true) as typeof process.stdout.write;
+			process.stderr.write = ((chunk: string | Uint8Array) => {
+				stderrWrites.push(String(chunk));
+				return true;
+			}) as typeof process.stderr.write;
+
+			await expect(interactiveWalletAction({})).resolves.toBeUndefined();
+			expect(stderrWrites.join("")).toContain(
+				"No stored credential satisfies the supported DCQL query",
+			);
+		} finally {
+			inquirer.prompt = originalPrompt;
+			process.stdout.write = originalStdoutWrite;
+			process.stderr.write = originalStderrWrite;
+			if (stdinDescriptor) {
+				Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+			}
+			if (stdoutDescriptor) {
+				Object.defineProperty(process.stdout, "isTTY", stdoutDescriptor);
+			}
 			await rm(walletDir, { recursive: true, force: true });
 		}
 	});

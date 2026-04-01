@@ -56,7 +56,7 @@ type CredentialPrompt = (queryMatch: QueryCredentialMatches) => Promise<string>;
 async function parsePresentationRequest(
 	value: string,
 ): Promise<OpenId4VpRequestInput> {
-	const trimmed = value.trim();
+	const trimmed = unwrapQuotedInput(value.trim());
 	if (trimmed.startsWith("openid4vp:")) {
 		verbose("Parsing openid4vp:// authorization URL");
 		return parseOpenid4VpAuthorizationUrl(trimmed);
@@ -64,6 +64,17 @@ async function parsePresentationRequest(
 
 	verbose("Parsing inline OpenID4VP request JSON");
 	return resolveOpenId4VpRequest(JSON.parse(trimmed) as OpenId4VpRequestInput);
+}
+
+function unwrapQuotedInput(value: string): string {
+	if (value.length < 2) {
+		return value;
+	}
+	const quote = value[0];
+	if ((quote === '"' || quote === "'") && value.at(-1) === quote) {
+		return value.slice(1, -1).trim();
+	}
+	return value;
 }
 
 async function maybeSelectCredentials(

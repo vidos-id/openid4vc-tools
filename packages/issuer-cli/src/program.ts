@@ -133,7 +133,7 @@ export function createProgram(version: string): Command {
 			.option("--claims-file <file>", "Path to a JSON file with default claims")
 			.addHelpText(
 				"after",
-				`\nExamples:\n  $ issuer-cli templates create --name "Conference Pass" --vct https://issuer.example/credentials/conference-pass --claims '{"given_name":"Ada"}'\n  $ issuer-cli templates create --name "PID" --vct urn:eudi:pid:1 --claims-file ./claims.json`,
+				`\nExamples:\n  $ issuer-cli templates create --name "Conference Pass" --vct urn:eudi:pid:1 --claims '{"given_name":"Ada"}'\n  $ issuer-cli templates create --name "PID" --vct urn:eudi:pid:1 --claims-file ./claims.json`,
 			),
 	).action(async (options) => {
 		const result = await createTemplateAction(options);

@@ -91,7 +91,7 @@ describe("issuer-cli", () => {
 					serverUrl: "http://localhost:3001",
 					sessionFile,
 					name: "Conference Pass",
-					vct: "https://issuer.example/credentials/conference-pass",
+					vct: "urn:eudi:pid:1",
 					claims: JSON.stringify({ given_name: "Ada", pass_level: "speaker" }),
 				},
 				{ fetchImpl },

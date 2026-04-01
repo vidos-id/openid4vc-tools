@@ -99,7 +99,7 @@ async function signUpAndCreateTemplate(fetchImpl: typeof fetch) {
 			},
 			body: JSON.stringify({
 				name: "Conference Pass",
-				vct: "https://issuer.example/credentials/conference-pass",
+				vct: "urn:eudi:pid:1",
 				defaultClaims: {
 					given_name: "Ada",
 					family_name: "Lovelace",
@@ -131,6 +131,12 @@ describe("issuer web server", () => {
 			force: true,
 		});
 		await rm("./.tmp/issuer-web-multi-origin.sqlite", { force: true });
+		await rm("./.tmp/issuer-web-predefined-templates.sqlite", {
+			force: true,
+		});
+		await rm("./.tmp/issuer-web-predefined-issuance.sqlite", {
+			force: true,
+		});
 	});
 
 	test("supports signup, template creation, issuance, wallet receipt, and status updates", async () => {
@@ -173,9 +179,7 @@ describe("issuer web server", () => {
 				fetch: fetchImpl,
 			},
 		);
-		expect(stored.vct).toBe(
-			"https://issuer.example/credentials/conference-pass",
-		);
+		expect(stored.vct).toBe("urn:eudi:pid:1");
 		const redeemedIssuance = await context.db.query.issuances.findFirst();
 		expect(redeemedIssuance?.state).toBe("redeemed");
 		const activeStatus = await wallet.getCredentialStatus(stored.id, {
@@ -214,6 +218,96 @@ describe("issuer web server", () => {
 			fetch: fetchImpl,
 		});
 		expect(revokedStatus?.status.value).toBe(1);
+	});
+
+	test("returns predefined templates without storing them in the database", async () => {
+		const context = await createAppContext(
+			createTestEnv("issuer-web-predefined-templates"),
+		);
+		const app = await createServerApp(context);
+		const fetchImpl = createCookieFetch(app);
+		const auth = createAuthClient({
+			baseURL: "http://localhost:3001/api/auth",
+			plugins: [anonymousClient(), usernameClient()],
+			fetchOptions: {
+				customFetchImpl: fetchImpl,
+			},
+		});
+
+		const signUpResult = await auth.signUp.email({
+			email: "predefined@example.com",
+			password: "very-secure-password",
+			name: "predefined",
+			username: "predefined",
+		});
+		expect(signUpResult.error).toBeNull();
+
+		const templatesResponse = await fetchImpl(
+			"http://localhost:3001/api/templates",
+		);
+		expect(templatesResponse.status).toBe(200);
+		const templates = (await templatesResponse.json()) as Array<{
+			id: string;
+			kind: string;
+			credentialConfigurationId: string;
+		}>;
+		expect(
+			templates.some(
+				(template) =>
+					template.id === "predefined:eudi-pid-sd-jwt" &&
+					template.kind === "predefined" &&
+					template.credentialConfigurationId === "urn:eudi:pid:1",
+			),
+		).toBe(true);
+
+		const storedTemplates =
+			await context.db.query.credentialTemplates.findMany();
+		expect(storedTemplates).toHaveLength(0);
+	});
+
+	test("supports issuing from a predefined template", async () => {
+		const context = await createAppContext(
+			createTestEnv("issuer-web-predefined-issuance"),
+		);
+		const app = await createServerApp(context);
+		const fetchImpl = createCookieFetch(app);
+		const auth = createAuthClient({
+			baseURL: "http://localhost:3001/api/auth",
+			plugins: [anonymousClient(), usernameClient()],
+			fetchOptions: {
+				customFetchImpl: fetchImpl,
+			},
+		});
+
+		const signUpResult = await auth.signUp.email({
+			email: "predefined-issuance@example.com",
+			password: "very-secure-password",
+			name: "predefinedissuance",
+			username: "predefinedissuance",
+		});
+		expect(signUpResult.error).toBeNull();
+
+		const issuanceResponse = await fetchImpl(
+			"http://localhost:3001/api/issuances",
+			{
+				method: "POST",
+				headers: {
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({
+					templateId: "predefined:eudi-pid-sd-jwt",
+					claims: {
+						seat: "B-15",
+					},
+				}),
+			},
+		);
+		expect(issuanceResponse.status).toBe(200);
+		const detail = (await issuanceResponse.json()) as {
+			issuance: { templateId: string; credentialConfigurationId: string };
+		};
+		expect(detail.issuance.templateId).toBe("predefined:eudi-pid-sd-jwt");
+		expect(detail.issuance.credentialConfigurationId).toBe("urn:eudi:pid:1");
 	});
 
 	test("returns a stable status list JWT until the list changes", async () => {
@@ -532,7 +626,7 @@ describe("issuer web server", () => {
 				},
 				body: JSON.stringify({
 					name: "Guest Template",
-					vct: "https://issuer.example/credentials/guest-template",
+					vct: "urn:eudi:pid:1",
 					defaultClaims: {
 						given_name: "Guest",
 					},
