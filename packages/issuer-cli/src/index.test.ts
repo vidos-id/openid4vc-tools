@@ -13,6 +13,7 @@ import {
 	createTemplateAction,
 	listIssuancesAction,
 	listTemplatesAction,
+	metadataAction,
 	showIssuanceAction,
 	updateIssuanceStatusAction,
 } from "./index.ts";
@@ -197,5 +198,26 @@ describe("issuer-cli", () => {
 		} finally {
 			await rm(sessionDir, { recursive: true, force: true });
 		}
+	});
+
+	test("fetches issuer metadata from the public well-known endpoint", async () => {
+		const context = await createAppContext(createTestEnv("issuer-cli-actions"));
+		const app = await createServerApp(context);
+		const fetchImpl = createCookieFetch(app);
+
+		const result = await metadataAction(
+			{ serverUrl: "http://localhost:3001" },
+			{ fetchImpl },
+		);
+
+		expect(result.metadata.credential_issuer).toBe("http://localhost:3001");
+		expect(result.metadata.token_endpoint).toBe("http://localhost:3001/token");
+		expect(result.metadata.credential_endpoint).toBe(
+			"http://localhost:3001/credential",
+		);
+		expect(result.metadata.jwks.keys.length).toBeGreaterThan(0);
+		expect(
+			Object.keys(result.metadata.credential_configurations_supported).length,
+		).toBeGreaterThan(0);
 	});
 });

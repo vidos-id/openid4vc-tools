@@ -13,6 +13,7 @@ import {
 	showIssuanceAction,
 	updateIssuanceStatusAction,
 } from "./actions/issuances.ts";
+import { metadataAction } from "./actions/metadata.ts";
 import {
 	createTemplateAction,
 	deleteTemplateAction,
@@ -22,6 +23,7 @@ import {
 	formatDeletedTemplate,
 	formatIssuanceList,
 	formatIssuanceSummary,
+	formatIssuerMetadata,
 	formatSessionSummary,
 	formatSignedOut,
 	formatTemplateList,
@@ -62,6 +64,23 @@ export function createProgram(version: string): Command {
 			}),
 	).action(async (options) => {
 		await interactiveAction(options);
+	});
+
+	withCommonOptions(
+		program
+			.command("metadata")
+			.description(
+				"Show issuer metadata from /.well-known/openid-credential-issuer",
+			)
+			.option("--output <format>", "Output format: text or json", "text"),
+	).action(async (options) => {
+		const result = await metadataAction(options);
+		printResult(
+			options.output === "json"
+				? result.metadata
+				: formatIssuerMetadata(result.metadata),
+			options.output,
+		);
 	});
 
 	const auth = program

@@ -124,6 +124,20 @@ export const templateListSchema = z.array(templateSchema);
 
 export const issuanceListSchema = z.array(issuanceSchema);
 
+export const issuerMetadataSchema = z.object({
+	credential_issuer: z.string().url(),
+	token_endpoint: z.string().url(),
+	credential_endpoint: z.string().url(),
+	nonce_endpoint: z.string().url().optional(),
+	jwks: z.object({
+		keys: z.array(z.record(z.string(), z.unknown())).min(1),
+	}),
+	credential_configurations_supported: z.record(
+		z.string(),
+		z.record(z.string(), z.unknown()),
+	),
+});
+
 export type BaseCliOptions = z.infer<typeof baseCliOptionsSchema>;
 export type StoredSession = z.infer<typeof sessionFileSchema>;
 export type TemplateCreateOptions = z.infer<typeof templateCreateOptionsSchema>;
@@ -140,3 +154,4 @@ export type CreateIssuanceInput = z.infer<typeof createIssuanceInputSchema>;
 export type UpdateIssuanceStatusInput = z.infer<
 	typeof updateIssuanceStatusInputSchema
 >;
+export type IssuerMetadata = z.infer<typeof issuerMetadataSchema>;

@@ -26,6 +26,7 @@ bun packages/issuer-cli/src/index.ts --help
 
 - sign in to a local or remote issuer web server
 - support guest sessions and username/password accounts
+- inspect the issuer metadata published at `/.well-known/openid-credential-issuer`
 - list, create, and delete templates
 - list issuances, create new issuance offers, inspect offer URIs, and update status
 - provide an interactive terminal flow with prompts and menus
@@ -87,6 +88,15 @@ Sign out and clear the saved session file.
 
 ```bash
 issuer-cli auth signout
+```
+
+### `metadata`
+
+Show the issuer metadata document exposed by the server.
+
+```bash
+issuer-cli metadata
+issuer-cli metadata --server-url http://localhost:3001 --output json
 ```
 
 ### `templates list`
@@ -170,6 +180,7 @@ The interactive mode can:
 
 - choose the target server URL
 - sign in as guest or with credentials
+- inspect issuer metadata
 - create and delete templates
 - create issuances from a selected template
 - inspect and update existing issuances

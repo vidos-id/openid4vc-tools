@@ -20,6 +20,7 @@ export {
 	showIssuanceAction,
 	updateIssuanceStatusAction,
 } from "./actions/issuances.ts";
+export { metadataAction } from "./actions/metadata.ts";
 export {
 	createTemplateAction,
 	deleteTemplateAction,

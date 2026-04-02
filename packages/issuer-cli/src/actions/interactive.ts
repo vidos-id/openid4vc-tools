@@ -3,6 +3,7 @@ import {
 	formatDeletedTemplate,
 	formatIssuanceList,
 	formatIssuanceSummary,
+	formatIssuerMetadata,
 	formatSessionSummary,
 	formatSignedOut,
 	formatTemplateList,
@@ -24,6 +25,7 @@ import {
 	showIssuanceAction,
 	updateIssuanceStatusAction,
 } from "./issuances.ts";
+import { metadataAction } from "./metadata.ts";
 import {
 	createTemplateAction,
 	deleteTemplateAction,
@@ -56,6 +58,7 @@ export async function interactiveAction(
 
 			const choice = await prompt.choose("Issuer CLI", [
 				{ label: "Who am I", value: "whoami" },
+				{ label: "Show issuer metadata", value: "metadata" },
 				{ label: "List templates", value: "templates-list" },
 				{ label: "Create template", value: "templates-create" },
 				{ label: "Delete template", value: "templates-delete" },
@@ -85,6 +88,12 @@ export async function interactiveAction(
 			if (choice === "whoami") {
 				const result = await authWhoAmIAction({ ...options, serverUrl }, deps);
 				stdout.write(`${formatSessionSummary(result)}\n\n`);
+				continue;
+			}
+
+			if (choice === "metadata") {
+				const result = await metadataAction({ ...options, serverUrl }, deps);
+				stdout.write(`${formatIssuerMetadata(result.metadata)}\n\n`);
 				continue;
 			}
 

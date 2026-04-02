@@ -24,6 +24,7 @@ import {
 	appErrorResponseSchema,
 	authApiResponseSchema,
 	issuanceListSchema,
+	issuerMetadataSchema,
 	templateListSchema,
 } from "./schemas.ts";
 
@@ -101,6 +102,15 @@ export class IssuerWebClient {
 			await this.parseJson(response, "session"),
 		);
 		return payload;
+	}
+
+	async getMetadata() {
+		const response = await this.request(
+			"/.well-known/openid-credential-issuer",
+		);
+		return issuerMetadataSchema.parse(
+			await this.parseJson(response, "issuer metadata"),
+		);
 	}
 
 	async listTemplates(): Promise<Template[]> {
