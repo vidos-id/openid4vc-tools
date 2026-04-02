@@ -1,6 +1,6 @@
 {
 	"name": "@vidos-id/openid4vc-issuer-web-shared",
-	"version": "0.8.0",
+	"version": "0.10.0-rc1",
 	"type": "module",
 	"engines": {
 		"node": ">=20"
