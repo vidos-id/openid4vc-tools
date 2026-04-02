@@ -1,6 +1,10 @@
 {
 	"name": "@vidos-id/openid4vc-issuer-web-server",
 	"version": "0.8.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vidos-id/openid4vc-tools.git"
+	},
 	"type": "module",
 	"main": "./src/index.ts",
 	"module": "./src/index.ts",
