@@ -60,9 +60,9 @@ Guidelines:
 - Ensure the file path is exactly `.release_notes.md` at repo root.
 - Ensure the version header matches the intended release.
 
-5. Commit and push the file before release preparation
+5. Commit and push the file before running the release workflow
 
-The developer must commit and push `.release_notes.md` before running the release preparation workflow.
+The developer must commit and push `.release_notes.md` before running the release workflow.
 
 Example:
 

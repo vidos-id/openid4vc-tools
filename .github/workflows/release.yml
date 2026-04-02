@@ -1,9 +1,12 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (for example 0.10.0)
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,11 +20,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Require default branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: test "${GITHUB_REF_NAME}" = "${DEFAULT_BRANCH}"
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.10"
 
       - run: bun install --frozen-lockfile
+
+      - name: Require release notes file
+        run: test -f .release_notes.md
+
+      - name: Bump package versions
+        run: bun run release:version ${{ inputs.version }}
+
+      - run: bun install --lockfile-only
 
       - run: bun run check-types
 
@@ -29,11 +45,25 @@ jobs:
 
       - run: bun run build
 
-      - name: Require release notes file
-        run: test -f .release_notes.md
+      - name: Commit release version and create tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add package.json bun.lock packages .github/workflows scripts/release-version.ts
+          git commit -m "chore: release v${VERSION}"
+          git tag "v${VERSION}"
 
       - name: Publish npm packages
         run: bun run publish
+
+      - name: Push release commit and tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git push origin HEAD:${GITHUB_REF_NAME}
+          git push origin "v${VERSION}"
 
       - name: Prepare release artifacts
         run: |
@@ -44,23 +74,20 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ inputs.version }}
           body_path: .release_notes.md
           files: |
             openid4vc-wallet.mjs
             openid4vc-issuer.mjs
 
       - name: Delete consumed release notes file
-        env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git fetch origin "${DEFAULT_BRANCH}"
-          git switch -C "${DEFAULT_BRANCH}" "origin/${DEFAULT_BRANCH}"
           if [ ! -f .release_notes.md ]; then
             exit 0
           fi
           rm .release_notes.md
           git add .release_notes.md
-          git commit -m "chore: clear release notes after ${GITHUB_REF_NAME}"
-          git push origin "${DEFAULT_BRANCH}"
+          git commit -m "chore: clear release notes after v${{ inputs.version }}"
+          git push origin HEAD:${GITHUB_REF_NAME}
