@@ -26,7 +26,7 @@ Current focus:
 
 ## Install
 
-Published packages use the `@vidos-id` scope on GitHub Packages. CLI release artifacts are published on GitHub Releases as Bun-executable single-file binaries.
+Published packages use the `@vidos-id` scope on npmjs.
 
 Requirements:
 
@@ -48,16 +48,14 @@ pnpm add @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 yarn add @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 ```
 
-### CLI Releases
+### CLIs
 
 ```bash
-# openid4vc-wallet
-curl -L -o openid4vc-wallet https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-wallet.js
-chmod +x openid4vc-wallet
+# bun
+bun install -g @vidos-id/openid4vc-wallet-cli @vidos-id/openid4vc-issuer-cli
 
-# openid4vc-issuer
-curl -L -o openid4vc-issuer https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-issuer.js
-chmod +x openid4vc-issuer
+# npm
+npm install -g @vidos-id/openid4vc-wallet-cli @vidos-id/openid4vc-issuer-cli
 ```
 
 ## Local Dev
@@ -72,8 +70,8 @@ Or run individual entry points:
 ```bash
 bun run --filter '@vidos-id/openid4vc-issuer-web-server' dev
 bun run --filter '@vidos-id/openid4vc-issuer-web-client' dev
-bun packages/issuer-cli/src/index.ts --help
-bun packages/wallet-cli/src/index.ts --help
+bun packages/issuer-cli/src/cli.ts --help
+bun packages/wallet-cli/src/cli.ts --help
 ```
 
 ## Demos

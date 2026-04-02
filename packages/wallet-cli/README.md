@@ -10,20 +10,24 @@ Running `openid4vc-wallet` with no subcommand starts the interactive mode by def
 
 ## Install
 
-Download the latest GitHub Release artifact and make it executable:
+Install the published CLI from npmjs:
 
 ```bash
-curl -L -o openid4vc-wallet https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-wallet.js
-chmod +x openid4vc-wallet
-./openid4vc-wallet --help
+bun install -g @vidos-id/openid4vc-wallet-cli
+openid4vc-wallet --help
 ```
 
-Release artifacts do not bundle the repo's `examples/` directory. For remote example requests, pass raw GitHub content via `--request` or raw offer content via `--offer`.
+Or with npm:
+
+```bash
+npm install -g @vidos-id/openid4vc-wallet-cli
+openid4vc-wallet --help
+```
 
 For development in this repo, you can run the bin entry directly with Bun:
 
 ```bash
-bun packages/wallet-cli/src/index.ts --help
+bun packages/wallet-cli/src/cli.ts --help
 ```
 
 ## Files in `--wallet-dir`

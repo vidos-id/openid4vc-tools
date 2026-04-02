@@ -8,18 +8,24 @@ For wallet-side credential receipt and storage, use [`@vidos-id/openid4vc-wallet
 
 ## Install
 
-Download the latest GitHub Release artifact and make it executable:
+Install the published CLI from npmjs:
 
 ```bash
-curl -L -o openid4vc-issuer https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-issuer.js
-chmod +x openid4vc-issuer
-./openid4vc-issuer --help
+bun install -g @vidos-id/openid4vc-issuer-cli
+openid4vc-issuer --help
+```
+
+Or with npm:
+
+```bash
+npm install -g @vidos-id/openid4vc-issuer-cli
+openid4vc-issuer --help
 ```
 
 For development in this repo, run the bin entry directly with Bun:
 
 ```bash
-bun packages/issuer-cli/src/index.ts --help
+bun packages/issuer-cli/src/cli.ts --help
 ```
 
 ## What It Does

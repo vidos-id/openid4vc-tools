@@ -1,6 +1,3 @@
-#!/usr/bin/env node
-
-import { pathToFileURL } from "node:url";
 import {
 	handleCliError,
 	resolveCliVersion,
@@ -117,10 +114,4 @@ export async function runCli(argv = process.argv): Promise<void> {
 	} catch (error) {
 		handleCliError(error);
 	}
-}
-
-if (import.meta.url === pathToFileURL(process.argv[1] ?? process.cwd()).href) {
-	void runCli().catch((error) => {
-		handleCliError(error);
-	});
 }

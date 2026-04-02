@@ -14,7 +14,7 @@
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
 	"bin": {
-		"openid4vc-issuer": "./dist/index.mjs"
+		"openid4vc-issuer": "./dist/cli.mjs"
 	},
 	"exports": {
 		".": {

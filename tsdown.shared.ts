@@ -22,5 +22,11 @@ export function createLibraryConfig(): UserConfig {
 }
 
 export function createCliConfig(): UserConfig {
-	return createBaseConfig();
+	return defineConfig({
+		...createBaseConfig(),
+		entry: {
+			index: "src/index.ts",
+			cli: "src/cli.ts",
+		},
+	});
 }

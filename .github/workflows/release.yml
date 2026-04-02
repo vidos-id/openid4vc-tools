@@ -30,9 +30,6 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Require release notes file
-        run: test -f .release_notes.md
-
       - name: Bump package versions
         run: bun run release:version ${{ inputs.version }}
 
@@ -88,30 +85,3 @@ jobs:
         run: |
           git push origin HEAD:${GITHUB_REF_NAME}
           git push origin "v${VERSION}"
-
-      - name: Prepare release artifacts
-        run: |
-          cp packages/wallet-cli/dist/index.mjs openid4vc-wallet.mjs
-          cp packages/issuer-cli/dist/index.mjs openid4vc-issuer.mjs
-          chmod +x openid4vc-wallet.mjs openid4vc-issuer.mjs
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ inputs.version }}
-          body_path: .release_notes.md
-          files: |
-            openid4vc-wallet.mjs
-            openid4vc-issuer.mjs
-
-      - name: Delete consumed release notes file
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          if [ ! -f .release_notes.md ]; then
-            exit 0
-          fi
-          rm .release_notes.md
-          git add .release_notes.md
-          git commit -m "chore: clear release notes after v${{ inputs.version }}"
-          git push origin HEAD:${GITHUB_REF_NAME}

@@ -14,7 +14,7 @@
 	"main": "./dist/index.mjs",
 	"types": "./dist/index.d.mts",
 	"bin": {
-		"openid4vc-wallet": "./dist/index.mjs"
+		"openid4vc-wallet": "./dist/cli.mjs"
 	},
 	"exports": {
 		".": {
