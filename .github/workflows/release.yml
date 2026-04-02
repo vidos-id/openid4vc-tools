@@ -7,6 +7,16 @@ on:
         description: Release version (for example 0.10.0)
         required: true
         type: string
+      npm_tag:
+        description: npm dist-tag to publish under
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+          - beta
+          - rc
 
 permissions:
   contents: write
@@ -61,6 +71,8 @@ jobs:
           git tag "v${VERSION}"
 
       - name: Publish npm packages
+        env:
+          NPM_CONFIG_TAG: ${{ inputs.npm_tag }}
         run: bun run package-publish
 
       - name: Push release commit and tag

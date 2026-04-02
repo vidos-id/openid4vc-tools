@@ -65,6 +65,7 @@
 		"package-publish": {
 			"dependsOn": ["build"],
 			"cache": false,
+			"passThroughEnv": ["NPM_CONFIG_TAG"],
 			"outputs": []
 		}
 	},
