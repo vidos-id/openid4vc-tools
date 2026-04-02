@@ -7,16 +7,6 @@ on:
         description: Release version (for example 0.10.0)
         required: true
         type: string
-      npm_tag:
-        description: npm dist-tag to publish under
-        required: true
-        default: latest
-        type: choice
-        options:
-          - latest
-          - next
-          - beta
-          - rc
 
 permissions:
   contents: write
@@ -52,6 +42,28 @@ jobs:
       - name: Bump package versions
         run: bun run release:version ${{ inputs.version }}
 
+      - name: Resolve npm dist-tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          case "${VERSION}" in
+            *-rc.*)
+              echo "NPM_DIST_TAG=rc" >> "$GITHUB_ENV"
+              ;;
+            *-beta.*)
+              echo "NPM_DIST_TAG=beta" >> "$GITHUB_ENV"
+              ;;
+            *-alpha.*)
+              echo "NPM_DIST_TAG=alpha" >> "$GITHUB_ENV"
+              ;;
+            *-*)
+              echo "NPM_DIST_TAG=next" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "NPM_DIST_TAG=latest" >> "$GITHUB_ENV"
+              ;;
+          esac
+
       - run: bun install --lockfile-only
 
       - run: bun run check-types
@@ -72,7 +84,7 @@ jobs:
 
       - name: Publish npm packages
         env:
-          NPM_CONFIG_TAG: ${{ inputs.npm_tag }}
+          NPM_CONFIG_TAG: ${{ env.NPM_DIST_TAG }}
         run: bun run package-publish
 
       - name: Push release commit and tag
