@@ -1,4 +1,4 @@
-# @vidos-id/issuer-web-client
+# @vidos-id/openid4vc-issuer-web-client
 
 React + Vite SPA for the demo issuer web application.
 
@@ -7,13 +7,13 @@ React + Vite SPA for the demo issuer web application.
 Uses committed local defaults from `.env.local`:
 
 ```bash
-bun run --filter '@vidos-id/issuer-web-client' dev
+bun run --filter '@vidos-id/openid4vc-issuer-web-client' dev
 ```
 
 Run the API separately:
 
 ```bash
-bun run --filter '@vidos-id/issuer-web-server' dev
+bun run --filter '@vidos-id/openid4vc-issuer-web-server' dev
 ```
 
 Default URLs:

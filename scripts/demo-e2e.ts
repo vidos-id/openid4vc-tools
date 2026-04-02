@@ -55,7 +55,7 @@ const request = {
 	},
 };
 
-const workspace = await mkdtemp(join(tmpdir(), "oid4vp-cli-utils-demo-"));
+const workspace = await mkdtemp(join(tmpdir(), "openid4vc-toolsdemo-"));
 const outputDir = join(workspace, "demo-output");
 const walletDir = join(outputDir, "wallet");
 
@@ -63,7 +63,7 @@ await mkdir(walletDir, { recursive: true });
 
 const trust = await generateIssuerTrustMaterial({
 	kid: "demo-issuer-key",
-	subject: "/CN=Demo Issuer/O=oid4vp-cli-utils",
+	subject: "/CN=Demo Issuer/O=openid4vc-tools",
 });
 
 const issuer = createIssuer({

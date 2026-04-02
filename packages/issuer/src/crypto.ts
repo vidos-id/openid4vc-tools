@@ -46,7 +46,7 @@ export const generateIssuerTrustMaterial = async (input?: {
 	alg?: "ES256" | "ES384" | "EdDSA";
 }) => {
 	const kid = input?.kid ?? "issuer-key-1";
-	const subject = input?.subject ?? "/CN=Demo Issuer/O=oid4vp-cli-utils";
+	const subject = input?.subject ?? "/CN=Demo Issuer/O=openid4vc-tools";
 	const daysValid = input?.daysValid ?? 365;
 	const alg = input?.alg ?? "EdDSA";
 	const { privateKey, publicKey } =

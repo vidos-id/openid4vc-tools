@@ -2,12 +2,12 @@ import type {
 	CreateTemplateInput,
 	Template,
 	UpdateTemplateInput,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import {
 	createTemplateInputSchema,
 	templateSchema,
 	updateTemplateInputSchema,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { and, eq } from "drizzle-orm";
 import type { IssuerWebDatabase } from "../db/index.ts";
 import { credentialTemplates } from "../db/schema.ts";

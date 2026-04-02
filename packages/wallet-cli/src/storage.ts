@@ -13,7 +13,7 @@ import {
 	type StoredCredentialRecord,
 	StoredCredentialRecordSchema,
 	type WalletStorage,
-} from "@vidos-id/wallet";
+} from "@vidos-id/openid4vc-wallet";
 import { z } from "zod";
 
 const walletManifestSchema = z.object({

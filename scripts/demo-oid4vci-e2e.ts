@@ -37,7 +37,7 @@ await mkdir(walletDir, { recursive: true });
 const trust = await generateIssuerTrustMaterial({
 	alg: "ES256",
 	kid: "demo-issuer-key",
-	subject: "/CN=Demo OID4VCI Issuer/O=oid4vp-cli-utils",
+	subject: "/CN=Demo OID4VCI Issuer/O=openid4vc-tools",
 });
 
 const issuer = createIssuer(

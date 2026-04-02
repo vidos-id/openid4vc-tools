@@ -1,5 +1,5 @@
 {
-	"name": "@vidos-id/issuer-web-shared",
+	"name": "@vidos-id/openid4vc-issuer-web-shared",
 	"version": "0.8.0",
 	"type": "module",
 	"main": "./src/index.ts",

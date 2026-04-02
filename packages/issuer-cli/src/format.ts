@@ -3,7 +3,7 @@ import {
 	type Issuance,
 	type IssuanceDetail,
 	type Template,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import type { IssuerMetadata } from "./schemas.ts";
 
 function section(title: string, lines: string[]) {

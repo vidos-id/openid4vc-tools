@@ -1,16 +1,16 @@
-import { serializeCredentialOfferUri } from "@vidos-id/issuer";
+import { serializeCredentialOfferUri } from "@vidos-id/openid4vc-issuer";
 import type {
 	CreateIssuanceInput,
 	Issuance,
 	IssuanceDetail,
 	UpdateIssuanceStatusInput,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import {
 	createIssuanceInputSchema,
 	issuanceDetailSchema,
 	issuanceSchema,
 	updateIssuanceStatusInputSchema,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { and, desc, eq } from "drizzle-orm";
 import type { AppContext } from "../context.ts";
 import {

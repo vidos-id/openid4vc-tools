@@ -1,5 +1,5 @@
 {
-	"name": "@vidos-id/issuer-web-server",
+	"name": "@vidos-id/openid4vc-issuer-web-server",
 	"version": "0.8.0",
 	"type": "module",
 	"main": "./src/index.ts",
@@ -18,8 +18,8 @@
 	},
 	"dependencies": {
 		"@hono/zod-validator": "^0.7.6",
-		"@vidos-id/issuer": "workspace:*",
-		"@vidos-id/issuer-web-shared": "workspace:*",
+		"@vidos-id/openid4vc-issuer": "workspace:*",
+		"@vidos-id/openid4vc-issuer-web-shared": "workspace:*",
 		"better-auth": "^1.5.6",
 		"drizzle-orm": "^0.45.2",
 		"hono": "^4.12.9",

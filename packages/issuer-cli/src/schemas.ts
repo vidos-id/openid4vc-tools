@@ -6,7 +6,7 @@ import {
 	sessionResponseSchema,
 	templateSchema,
 	type updateIssuanceStatusInputSchema,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { z } from "zod";
 
 export const serverUrlSchema = z.url();

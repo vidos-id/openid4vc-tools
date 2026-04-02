@@ -1,14 +1,19 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { verbose } from "@vidos-id/cli-common";
+import { verbose } from "@vidos-id/openid4vc-cli-common";
 import type { BaseCliOptions, StoredSession } from "./schemas.ts";
 import { sessionFileSchema } from "./schemas.ts";
 
 const DEFAULT_SERVER_URL = "http://localhost:3001";
 
 export function resolveDefaultSessionFilePath() {
-	return join(homedir(), ".config", "vidos-id", "issuer-cli-session.json");
+	return join(
+		homedir(),
+		".config",
+		"vidos-id",
+		"openid4vc-issuer-session.json",
+	);
 }
 
 export function resolveSessionFilePath(options?: BaseCliOptions) {
@@ -37,14 +42,14 @@ export async function writeStoredSession(
 	const filePath = resolveSessionFilePath(options);
 	await mkdir(dirname(filePath), { recursive: true });
 	await writeFile(filePath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
-	verbose(`Saved issuer-cli session to ${filePath}`);
+	verbose(`Saved openid4vc-issuer session to ${filePath}`);
 	return filePath;
 }
 
 export async function clearStoredSession(options?: BaseCliOptions) {
 	const filePath = resolveSessionFilePath(options);
 	await rm(filePath, { force: true });
-	verbose(`Cleared issuer-cli session at ${filePath}`);
+	verbose(`Cleared openid4vc-issuer session at ${filePath}`);
 	return filePath;
 }
 
@@ -52,7 +57,7 @@ export async function requireStoredSession(options?: BaseCliOptions) {
 	const session = await readStoredSession(options);
 	if (!session) {
 		throw new Error(
-			"No saved issuer session. Run `issuer-cli auth signin` or `issuer-cli interactive` first.",
+			"No saved issuer session. Run `openid4vc-issuer auth signin` or `openid4vc-issuer` first.",
 		);
 	}
 	return session;

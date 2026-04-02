@@ -5,7 +5,7 @@ import {
 	resolveCliVersion,
 	resolvePackageJsonPath,
 	setVerbose,
-} from "@vidos-id/cli-common";
+} from "@vidos-id/openid4vc-cli-common";
 import { interactiveWalletAction } from "./actions/interactive.ts";
 import { createProgram } from "./program.ts";
 

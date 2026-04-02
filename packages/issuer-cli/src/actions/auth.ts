@@ -1,4 +1,4 @@
-import type { SessionResponse } from "@vidos-id/issuer-web-shared";
+import type { SessionResponse } from "@vidos-id/openid4vc-issuer-web-shared";
 import { IssuerWebClient } from "../client.ts";
 import {
 	authSignInOptionsSchema,

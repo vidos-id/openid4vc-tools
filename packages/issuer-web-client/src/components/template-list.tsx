@@ -1,4 +1,4 @@
-import type { Template } from "@vidos-id/issuer-web-shared";
+import type { Template } from "@vidos-id/openid4vc-issuer-web-shared";
 import { Button } from "./ui/button.tsx";
 
 export function TemplateList(props: {

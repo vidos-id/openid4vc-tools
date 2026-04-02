@@ -1,4 +1,4 @@
-import { verbose } from "@vidos-id/cli-common";
+import { verbose } from "@vidos-id/openid4vc-cli-common";
 import {
 	createOpenId4VpAuthorizationResponse,
 	type OpenId4VpRequestInput,
@@ -8,7 +8,7 @@ import {
 	submitOpenId4VpAuthorizationResponse,
 	Wallet,
 	type WalletStorage,
-} from "@vidos-id/wallet";
+} from "@vidos-id/openid4vc-wallet";
 import { PromptSession } from "../prompts.ts";
 import { presentOptionsSchema } from "../schemas.ts";
 import { SelectedCredentialStorage } from "../selected-storage.ts";
@@ -109,7 +109,7 @@ async function promptForCredentialSelection(
 			.map((c) => `  ${c.credentialId} (${c.vct}, ${c.issuer})`)
 			.join("\n");
 		throw new Error(
-			`Multiple credentials match query "${queryMatch.queryId}":\n${candidates}\n\nRerun with --credential-id to select one, for example:\n  wallet-cli present --wallet-dir <dir> --request <value> --credential-id ${queryMatch.credentials[0]?.credentialId ?? "<id>"}`,
+			`Multiple credentials match query "${queryMatch.queryId}":\n${candidates}\n\nRerun with --credential-id to select one, for example:\n  openid4vc-wallet present --wallet-dir <dir> --request <value> --credential-id ${queryMatch.credentials[0]?.credentialId ?? "<id>"}`,
 		);
 	}
 

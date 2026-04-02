@@ -1,4 +1,4 @@
-import { readTextInput } from "@vidos-id/cli-common";
+import { readTextInput } from "@vidos-id/openid4vc-cli-common";
 import { IssuerWebClient, statusLabelToValue } from "../client.ts";
 import {
 	type BaseCliOptions,

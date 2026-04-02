@@ -6,7 +6,7 @@ import {
 	issueDemoCredential,
 	type QueryCredentialMatches,
 	Wallet,
-} from "@vidos-id/wallet";
+} from "@vidos-id/openid4vc-wallet";
 import inquirer from "inquirer";
 import { exportJWK, generateKeyPair } from "jose";
 import {

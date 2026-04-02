@@ -1,8 +1,8 @@
-# @vidos-id/issuer
+# @vidos-id/openid4vc-issuer
 
 Minimal demo issuer library for holder-bound `dc+sd-jwt` credentials.
 
-For the CLI wrapper, see [`@vidos-id/issuer-cli`](../issuer-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/issuer-cli/src/index.ts`.
+For the CLI wrapper, see [`@vidos-id/openid4vc-issuer-cli`](../issuer-cli/). For the installed CLI flow, see the [root README](../../). For development, the CLI bin can be run with `bun packages/issuer-cli/src/index.ts`.
 
 ## Install
 
@@ -17,16 +17,16 @@ Install with your preferred package manager:
 
 ```bash
 # bun
-bun add @vidos-id/issuer
+bun add @vidos-id/openid4vc-issuer
 
 # npm
-npm install @vidos-id/issuer
+npm install @vidos-id/openid4vc-issuer
 
 # pnpm
-pnpm add @vidos-id/issuer
+pnpm add @vidos-id/openid4vc-issuer
 
 # yarn
-yarn add @vidos-id/issuer
+yarn add @vidos-id/openid4vc-issuer
 ```
 
 This package is currently published as raw TypeScript and is intended for Bun-based consumers.
@@ -68,7 +68,7 @@ Out of scope:
 ## Example
 
 ```ts
-import { createIssuer, generateIssuerTrustMaterial } from "@vidos-id/issuer";
+import { createIssuer, generateIssuerTrustMaterial } from "@vidos-id/openid4vc-issuer";
 
 const trust = await generateIssuerTrustMaterial({ alg: "ES256" });
 
@@ -130,7 +130,7 @@ const issued = await issuer.issueCredential({
 const statusListJwt = await issuer.createStatusListToken(allocatedStatus.updatedStatusList);
 ```
 
-For holder binding, the wallet provides its public JWK via a proof JWT -- see the [`@vidos-id/wallet`](../wallet/) library and [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) for the full flow.
+For holder binding, the wallet provides its public JWK via a proof JWT -- see the [`@vidos-id/openid4vc-wallet`](../wallet/) library and [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) for the full flow.
 
 Host applications own HTTP routing and persistence. The issuer helpers return updated grant, access-token, and nonce records so your server can store them however it wants.
 

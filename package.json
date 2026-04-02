@@ -1,9 +1,9 @@
 {
-	"name": "oid4vp-cli-utils",
+	"name": "openid4vc-tools",
 	"version": "0.9.1",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/vidos-id/oid4vp-cli-utils.git"
+		"url": "https://github.com/vidos-id/openid4vc-tools.git"
 	},
 	"type": "module",
 	"workspaces": [
@@ -25,9 +25,9 @@
 		"demo:e2e": "bun scripts/demo-e2e.ts",
 		"demo:oid4vci": "bun scripts/demo-oid4vci-e2e.ts",
 		"dev": "turbo dev",
-		"dev:issuer-web": "turbo dev --filter='@vidos-id/issuer-web-server' --filter='@vidos-id/issuer-web-client'",
-		"dev:issuer-web-client": "turbo dev --filter='@vidos-id/issuer-web-client'",
-		"dev:issuer-web-server": "turbo dev --filter='@vidos-id/issuer-web-server'",
+		"dev:issuer-web": "turbo dev --filter='@vidos-id/openid4vc-issuer-web-server' --filter='@vidos-id/openid4vc-issuer-web-client'",
+		"dev:issuer-web-client": "turbo dev --filter='@vidos-id/openid4vc-issuer-web-client'",
+		"dev:issuer-web-server": "turbo dev --filter='@vidos-id/openid4vc-issuer-web-server'",
 		"test": "turbo test",
 		"lint": "biome check --write ."
 	},

@@ -1,19 +1,19 @@
-# @vidos-id/issuer-cli
+# @vidos-id/openid4vc-issuer-cli
 
-Terminal client for [`@vidos-id/issuer-web-server`](../issuer-web-server/).
+Terminal client for [`@vidos-id/openid4vc-issuer-web-server`](../issuer-web-server/).
 
 This CLI no longer issues credentials locally or manages issuer key material. It signs into a running issuer web server, manages templates and issuance offers, and exposes the same app-level workflows as the web client in a terminal-friendly form.
 
-For wallet-side credential receipt and storage, use [`@vidos-id/wallet-cli`](../wallet-cli/).
+For wallet-side credential receipt and storage, use [`@vidos-id/openid4vc-wallet-cli`](../wallet-cli/).
 
 ## Install
 
 Download the latest GitHub Release artifact and make it executable:
 
 ```bash
-curl -L -o issuer-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/issuer-cli.js
-chmod +x issuer-cli
-./issuer-cli --help
+curl -L -o openid4vc-issuer https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-issuer.js
+chmod +x openid4vc-issuer
+./openid4vc-issuer --help
 ```
 
 For development in this repo, run the bin entry directly with Bun:
@@ -31,14 +31,14 @@ bun packages/issuer-cli/src/index.ts --help
 - list issuances, create new issuance offers, inspect offer URIs, and update status
 - provide an interactive terminal flow with prompts and menus
 
-Running `issuer-cli` with no subcommand starts the interactive mode by default.
+Running `openid4vc-issuer` with no subcommand starts the interactive mode by default.
 
 ## Server
 
 Run the API separately:
 
 ```bash
-bun run --filter '@vidos-id/issuer-web-server' dev
+bun run --filter '@vidos-id/openid4vc-issuer-web-server' dev
 ```
 
 Default local server URL:
@@ -51,7 +51,7 @@ Most commands use the saved session server automatically. You can override it wi
 
 By default the CLI stores the authenticated session at:
 
-- `~/.config/vidos-id/issuer-cli-session.json`
+- `~/.config/vidos-id/openid4vc-issuer-session.json`
 
 Override it with `--session-file <file>`.
 
@@ -62,8 +62,8 @@ Override it with `--session-file <file>`.
 Sign in with either a guest session or username/password.
 
 ```bash
-issuer-cli auth signin --anonymous
-issuer-cli auth signin --server-url http://localhost:3001 --username ada --password secret
+openid4vc-issuer auth signin --anonymous
+openid4vc-issuer auth signin --server-url http://localhost:3001 --username ada --password secret
 ```
 
 ### `auth signup`
@@ -71,7 +71,7 @@ issuer-cli auth signin --server-url http://localhost:3001 --username ada --passw
 Create an account and save the resulting session.
 
 ```bash
-issuer-cli auth signup --username ada --password secret
+openid4vc-issuer auth signup --username ada --password secret
 ```
 
 ### `auth whoami`
@@ -79,7 +79,7 @@ issuer-cli auth signup --username ada --password secret
 Show the saved session.
 
 ```bash
-issuer-cli auth whoami
+openid4vc-issuer auth whoami
 ```
 
 ### `auth signout`
@@ -87,7 +87,7 @@ issuer-cli auth whoami
 Sign out and clear the saved session file.
 
 ```bash
-issuer-cli auth signout
+openid4vc-issuer auth signout
 ```
 
 ### `metadata`
@@ -95,8 +95,8 @@ issuer-cli auth signout
 Show the issuer metadata document exposed by the server.
 
 ```bash
-issuer-cli metadata
-issuer-cli metadata --server-url http://localhost:3001 --output json
+openid4vc-issuer metadata
+openid4vc-issuer metadata --server-url http://localhost:3001 --output json
 ```
 
 ### `templates list`
@@ -104,7 +104,7 @@ issuer-cli metadata --server-url http://localhost:3001 --output json
 List the predefined and custom templates visible to the current user.
 
 ```bash
-issuer-cli templates list
+openid4vc-issuer templates list
 ```
 
 ### `templates create`
@@ -112,12 +112,12 @@ issuer-cli templates list
 Create a custom template.
 
 ```bash
-issuer-cli templates create \
+openid4vc-issuer templates create \
   --name "Conference Pass" \
   --vct https://issuer.example/credentials/conference-pass \
   --claims '{"given_name":"Ada","pass_level":"speaker"}'
 
-issuer-cli templates create \
+openid4vc-issuer templates create \
   --name "PID" \
   --vct urn:eudi:pid:1 \
   --claims-file examples/pid/pid-minimal.claims.json
@@ -128,7 +128,7 @@ issuer-cli templates create \
 Delete a custom template by id.
 
 ```bash
-issuer-cli templates delete --template-id <template-id>
+openid4vc-issuer templates delete --template-id <template-id>
 ```
 
 ### `issuances list`
@@ -136,7 +136,7 @@ issuer-cli templates delete --template-id <template-id>
 List issuances for the current user.
 
 ```bash
-issuer-cli issuances list
+openid4vc-issuer issuances list
 ```
 
 ### `issuances create`
@@ -144,7 +144,7 @@ issuer-cli issuances list
 Create an issuance offer from a template. The output includes the `openid-credential-offer://` URI for wallet handoff.
 
 ```bash
-issuer-cli issuances create \
+openid4vc-issuer issuances create \
   --template-id <template-id> \
   --claims '{"seat":"A-12"}' \
   --status active
@@ -155,7 +155,7 @@ issuer-cli issuances create \
 Show one issuance, including its current state, claims, and offer URI.
 
 ```bash
-issuer-cli issuances show --issuance-id <issuance-id>
+openid4vc-issuer issuances show --issuance-id <issuance-id>
 ```
 
 ### `issuances status`
@@ -163,8 +163,8 @@ issuer-cli issuances show --issuance-id <issuance-id>
 Update credential status for an issuance.
 
 ```bash
-issuer-cli issuances status --issuance-id <issuance-id> --status suspended
-issuer-cli issuances status --issuance-id <issuance-id> --status revoked
+openid4vc-issuer issuances status --issuance-id <issuance-id> --status suspended
+openid4vc-issuer issuances status --issuance-id <issuance-id> --status revoked
 ```
 
 ## Interactive Mode
@@ -172,8 +172,8 @@ issuer-cli issuances status --issuance-id <issuance-id> --status revoked
 Start the interactive terminal flow by running the CLI without a subcommand:
 
 ```bash
-issuer-cli
-issuer-cli --server-url http://localhost:3001
+openid4vc-issuer
+openid4vc-issuer --server-url http://localhost:3001
 ```
 
 The interactive mode can:
@@ -187,7 +187,7 @@ The interactive mode can:
 
 ## Global options
 
-- running `issuer-cli` with no subcommand starts interactive mode
+- running `openid4vc-issuer` with no subcommand starts interactive mode
 - `--server-url <url>` - override the issuer web server URL
 - `--session-file <file>` - override the saved session file location
 - `--verbose` - enable verbose logging to stderr
@@ -196,8 +196,8 @@ The interactive mode can:
 
 ## Notes
 
-- `issuer-cli` is an app client of `issuer-web-server`; it does not issue locally
-- `issuer-cli` does not receive or store credentials; wallet redemption belongs to [`wallet-cli receive`](../wallet-cli/)
+- `openid4vc-issuer` is an app client of `openid4vc-issuer-web-server`; it does not issue locally
+- `openid4vc-issuer` does not receive or store credentials; wallet redemption belongs to [`openid4vc-wallet receive`](../wallet-cli/)
 - command output is concise text meant for terminal usage rather than raw JSON dumps
 
 ## Test

@@ -1,4 +1,4 @@
-import { generateIssuerTrustMaterial } from "@vidos-id/issuer";
+import { generateIssuerTrustMaterial } from "@vidos-id/openid4vc-issuer";
 import { eq } from "drizzle-orm";
 import { createAuth, type IssuerWebAuth } from "./auth.ts";
 import { type IssuerWebEnv, readIssuerWebEnv } from "./config.ts";

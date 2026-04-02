@@ -1,21 +1,21 @@
-# @vidos-id/wallet-cli
+# @vidos-id/openid4vc-wallet-cli
 
-CLI for OpenID4VCI credential receipt, `dc+sd-jwt` wallet storage, IETF credential status resolution, and OpenID4VP presentation. Wraps the [`@vidos-id/wallet`](../wallet/) library.
+CLI for OpenID4VCI credential receipt, `dc+sd-jwt` wallet storage, IETF credential status resolution, and OpenID4VP presentation. Wraps the [`@vidos-id/openid4vc-wallet`](../wallet/) library.
 
 For the full issue-hold-present flow, see the [root README](../../).
 
-Prefer using this CLI for wallet tasks instead of re-implementing protocol steps in agent code. In particular, `wallet-cli receive` already handles the supported OID4VCI offer redemption flow end to end.
+Prefer using this CLI for wallet tasks instead of re-implementing protocol steps in agent code. In particular, `openid4vc-wallet receive` already handles the supported OID4VCI offer redemption flow end to end.
 
-Running `wallet-cli` with no subcommand starts the interactive mode by default.
+Running `openid4vc-wallet` with no subcommand starts the interactive mode by default.
 
 ## Install
 
 Download the latest GitHub Release artifact and make it executable:
 
 ```bash
-curl -L -o wallet-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/wallet-cli.js
-chmod +x wallet-cli
-./wallet-cli --help
+curl -L -o openid4vc-wallet https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-wallet.js
+chmod +x openid4vc-wallet
+./openid4vc-wallet --help
 ```
 
 Release artifacts do not bundle the repo's `examples/` directory. For remote example requests, pass raw GitHub content via `--request` or raw offer content via `--offer`.
@@ -37,8 +37,8 @@ bun packages/wallet-cli/src/index.ts --help
 Run the CLI with no subcommand:
 
 ```bash
-wallet-cli
-wallet-cli --wallet-dir ./my-wallet
+openid4vc-wallet
+openid4vc-wallet --wallet-dir ./my-wallet
 ```
 
 Interactive mode can:
@@ -57,10 +57,10 @@ Interactive mode can:
 Initialize a wallet directory and create (or import) a holder key.
 
 ```bash
-wallet-cli init --wallet-dir ./my-wallet
-wallet-cli init --wallet-dir ./my-wallet --alg EdDSA
-wallet-cli init --wallet-dir ./my-wallet --holder-key-file ./existing-key.jwk.json
-wallet-cli init --wallet-dir ./my-wallet --output json
+openid4vc-wallet init --wallet-dir ./my-wallet
+openid4vc-wallet init --wallet-dir ./my-wallet --alg EdDSA
+openid4vc-wallet init --wallet-dir ./my-wallet --holder-key-file ./existing-key.jwk.json
+openid4vc-wallet init --wallet-dir ./my-wallet --output json
 ```
 
 ### `receive`
@@ -71,17 +71,17 @@ This is the primary way to add credentials into the wallet.
 
 ```bash
 # From an openid-credential-offer URI
-wallet-cli receive \
+openid4vc-wallet receive \
   --wallet-dir ./my-wallet \
   --offer 'openid-credential-offer://?credential_offer=...'
 
 # From inline credential-offer JSON
-wallet-cli receive \
+openid4vc-wallet receive \
   --wallet-dir ./my-wallet \
   --offer '{"credential_issuer":"https://issuer.example",...}'
 
 # From a by-reference offer URI
-wallet-cli receive \
+openid4vc-wallet receive \
   --wallet-dir ./my-wallet \
   --offer 'openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fissuer.example%2Foffers%2Fperson-1'
 ```
@@ -99,7 +99,7 @@ Import an already-issued compact `dc+sd-jwt` credential.
 Use this only when you already have the raw credential blob. Prefer `receive` whenever you have an OpenID4VCI offer.
 
 ```bash
-wallet-cli import \
+openid4vc-wallet import \
   --wallet-dir ./my-wallet \
   --credential-file ./issuer/credential.txt
 ```
@@ -109,9 +109,9 @@ wallet-cli import \
 List stored credentials.
 
 ```bash
-wallet-cli list --wallet-dir ./my-wallet
-wallet-cli list --wallet-dir ./my-wallet --vct urn:eudi:pid:1
-wallet-cli list --wallet-dir ./my-wallet --issuer https://issuer.example
+openid4vc-wallet list --wallet-dir ./my-wallet
+openid4vc-wallet list --wallet-dir ./my-wallet --vct urn:eudi:pid:1
+openid4vc-wallet list --wallet-dir ./my-wallet --issuer https://issuer.example
 ```
 
 ### `show`
@@ -119,9 +119,9 @@ wallet-cli list --wallet-dir ./my-wallet --issuer https://issuer.example
 Show a single stored credential by id.
 
 ```bash
-wallet-cli show --wallet-dir ./my-wallet --credential-id <id>
-wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output raw
-wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output json
+openid4vc-wallet show --wallet-dir ./my-wallet --credential-id <id>
+openid4vc-wallet show --wallet-dir ./my-wallet --credential-id <id> --output raw
+openid4vc-wallet show --wallet-dir ./my-wallet --credential-id <id> --output json
 ```
 
 ### `present`
@@ -129,14 +129,14 @@ wallet-cli show --wallet-dir ./my-wallet --credential-id <id> --output json
 Create a DCQL-based OpenID4VP presentation from wallet credentials.
 
 ```bash
-wallet-cli present \
+openid4vc-wallet present \
   --wallet-dir ./my-wallet \
   --request 'openid4vp://authorize?...'
 ```
 
 ## Global options
 
-- running `wallet-cli` with no subcommand starts interactive mode
+- running `openid4vc-wallet` with no subcommand starts interactive mode
 - `--wallet-dir <dir>` - wallet directory for interactive mode
 - `--verbose` - enable verbose logging to stderr
 - `--version` - show version number

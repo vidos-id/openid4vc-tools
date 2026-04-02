@@ -2,7 +2,7 @@ import {
 	jsonOutputFormatSchema,
 	outputFormatSchema,
 	textOutputFormatSchema,
-} from "@vidos-id/cli-common";
+} from "@vidos-id/openid4vc-cli-common";
 import { z } from "zod";
 
 export { jsonOutputFormatSchema, outputFormatSchema, textOutputFormatSchema };

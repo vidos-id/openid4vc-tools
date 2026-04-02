@@ -1,4 +1,8 @@
-import { printResult, setVerbose, verbose } from "@vidos-id/cli-common";
+import {
+	printResult,
+	setVerbose,
+	verbose,
+} from "@vidos-id/openid4vc-cli-common";
 import { Command } from "commander";
 import {
 	authSignInAction,
@@ -45,14 +49,14 @@ function withCommonOptions(command: Command) {
 export function createProgram(version: string): Command {
 	const program = withCommonOptions(
 		new Command()
-			.name("issuer-cli")
+			.name("openid4vc-issuer")
 			.version(version)
 			.description(
-				"Terminal client for issuer-web-server. Run without a subcommand to start interactive mode.",
+				"Terminal client for openid4vc-issuer-web-server. Run without a subcommand to start interactive mode.",
 			)
 			.addHelpText(
 				"after",
-				"\nInteractive mode:\n  Run `issuer-cli` without a subcommand to open the prompt-driven workflow.",
+				"\nInteractive mode:\n  Run `openid4vc-issuer` without a subcommand to open the prompt-driven workflow.",
 			)
 			.showHelpAfterError()
 			.option("--verbose", "Enable verbose logging to stderr", false)
@@ -96,7 +100,7 @@ export function createProgram(version: string): Command {
 			.option("--password <password>", "Password for sign-in")
 			.addHelpText(
 				"after",
-				`\nExamples:\n  $ issuer-cli auth signin --anonymous\n  $ issuer-cli auth signin --server-url http://localhost:3001 --username ada --password secret`,
+				`\nExamples:\n  $ openid4vc-issuer auth signin --anonymous\n  $ openid4vc-issuer auth signin --server-url http://localhost:3001 --username ada --password secret`,
 			),
 	).action(async (options) => {
 		verbose(`Signing in to ${options.serverUrl ?? "saved/default server"}`);
@@ -131,7 +135,9 @@ export function createProgram(version: string): Command {
 
 	const templates = program
 		.command("templates")
-		.description("Manage credential templates through issuer-web-server");
+		.description(
+			"Manage credential templates through openid4vc-issuer-web-server",
+		);
 
 	withCommonOptions(
 		templates
@@ -152,7 +158,7 @@ export function createProgram(version: string): Command {
 			.option("--claims-file <file>", "Path to a JSON file with default claims")
 			.addHelpText(
 				"after",
-				`\nExamples:\n  $ issuer-cli templates create --name "Conference Pass" --vct urn:eudi:pid:1 --claims '{"given_name":"Ada"}'\n  $ issuer-cli templates create --name "PID" --vct urn:eudi:pid:1 --claims-file ./claims.json`,
+				`\nExamples:\n  $ openid4vc-issuer templates create --name "Conference Pass" --vct urn:eudi:pid:1 --claims '{"given_name":"Ada"}'\n  $ openid4vc-issuer templates create --name "PID" --vct urn:eudi:pid:1 --claims-file ./claims.json`,
 			),
 	).action(async (options) => {
 		const result = await createTemplateAction(options);
@@ -198,7 +204,7 @@ export function createProgram(version: string): Command {
 			)
 			.addHelpText(
 				"after",
-				`\nExample:\n  $ issuer-cli issuances create --template-id <template-id> --claims '{"seat":"A-12"}' --status active`,
+				`\nExample:\n  $ openid4vc-issuer issuances create --template-id <template-id> --claims '{"seat":"A-12"}' --status active`,
 			),
 	).action(async (options) => {
 		const result = await createIssuanceAction(options);

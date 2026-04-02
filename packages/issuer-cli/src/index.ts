@@ -4,7 +4,7 @@ import {
 	handleCliError,
 	resolveCliVersion,
 	resolvePackageJsonPath,
-} from "@vidos-id/cli-common";
+} from "@vidos-id/openid4vc-cli-common";
 import { createProgram } from "./program.ts";
 
 export {

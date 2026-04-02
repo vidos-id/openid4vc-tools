@@ -1,9 +1,13 @@
-import type { ClaimSet, CredentialConfiguration, Jwk } from "@vidos-id/issuer";
-import type { TokenStatusLabel } from "@vidos-id/issuer-web-shared";
+import type {
+	ClaimSet,
+	CredentialConfiguration,
+	Jwk,
+} from "@vidos-id/openid4vc-issuer";
+import type { TokenStatusLabel } from "@vidos-id/openid4vc-issuer-web-shared";
 import {
 	getTokenStatusLabel,
 	KNOWN_TOKEN_STATUSES,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 
 export function jsonParse<T>(value: string): T {
 	return JSON.parse(value) as T;

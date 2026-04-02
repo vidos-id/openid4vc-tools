@@ -1,4 +1,7 @@
-import { createIssuer, type StatusListRecord } from "@vidos-id/issuer";
+import {
+	createIssuer,
+	type StatusListRecord,
+} from "@vidos-id/openid4vc-issuer";
 import type { AppContext } from "../context.ts";
 import { buildCredentialConfiguration, parseJwk } from "../utils.ts";
 import { TemplateService } from "./templates.ts";

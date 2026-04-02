@@ -39,14 +39,14 @@ jobs:
 
       - name: Prepare release artifacts
         run: |
-          cp dist/wallet-cli/index.js wallet-cli.js
-          cp dist/issuer-cli/index.js issuer-cli.js
-          chmod +x wallet-cli.js issuer-cli.js
+          cp dist/openid4vc-wallet/index.js openid4vc-wallet.js
+          cp dist/openid4vc-issuer/index.js openid4vc-issuer.js
+          chmod +x openid4vc-wallet.js openid4vc-issuer.js
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: .release_notes.md
           files: |
-            wallet-cli.js
-            issuer-cli.js
+            openid4vc-wallet.js
+            openid4vc-issuer.js

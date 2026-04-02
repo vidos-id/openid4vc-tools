@@ -1,4 +1,4 @@
-import { Wallet } from "@vidos-id/wallet";
+import { Wallet } from "@vidos-id/openid4vc-wallet";
 import { showOptionsSchema } from "../schemas.ts";
 import { FileSystemWalletStorage } from "../storage.ts";
 

@@ -1,5 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
-import { credentialRequestSchema, tokenRequestSchema } from "@vidos-id/issuer";
+import {
+	credentialRequestSchema,
+	tokenRequestSchema,
+} from "@vidos-id/openid4vc-issuer";
 import {
 	appErrorSchema,
 	createIssuanceInputSchema,
@@ -7,7 +10,7 @@ import {
 	sessionResponseSchema,
 	updateIssuanceStatusInputSchema,
 	updateTemplateInputSchema,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import { cors } from "hono/cors";

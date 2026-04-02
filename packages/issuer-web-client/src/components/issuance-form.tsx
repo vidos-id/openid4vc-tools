@@ -2,7 +2,7 @@ import {
 	ACTIVE_TOKEN_STATUS,
 	REVOKED_TOKEN_STATUS,
 	SUSPENDED_TOKEN_STATUS,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { Button } from "./ui/button.tsx";
 import { Textarea } from "./ui/textarea.tsx";
 

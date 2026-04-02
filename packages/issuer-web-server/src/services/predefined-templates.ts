@@ -1,5 +1,5 @@
-import type { Template } from "@vidos-id/issuer-web-shared";
-import { templateSchema } from "@vidos-id/issuer-web-shared";
+import type { Template } from "@vidos-id/openid4vc-issuer-web-shared";
+import { templateSchema } from "@vidos-id/openid4vc-issuer-web-shared";
 
 const PREDEFINED_TEMPLATE_OWNER_ID = "system-user";
 const PREDEFINED_TEMPLATE_TIMESTAMP = "2026-01-01T00:00:00.000Z";

@@ -1,4 +1,4 @@
-# oid4vp-cli-utils
+# openid4vc-tools
 
 CLI tools for quick `dc+sd-jwt` credential issuance, holding, and OpenID4VP presentation.
 
@@ -10,11 +10,11 @@ The repo also supports a minimal OpenID4VCI direct issuance subset: by-value cre
 
 | Package | Description |
 |---------|-------------|
-| [`@vidos-id/issuer-cli`](packages/issuer-cli/) | Terminal client for `issuer-web-server` |
-| [`@vidos-id/wallet-cli`](packages/wallet-cli/) | Hold credentials and create OpenID4VP presentations |
-| [`@vidos-id/issuer`](packages/issuer/) | Issuer library used by the CLI and Bun consumers |
-| [`@vidos-id/wallet`](packages/wallet/) | Wallet library used by the CLI and Bun consumers |
-| [`@vidos-id/cli-common`](packages/cli-common/) | Shared CLI utilities published for the CLI packages |
+| [`@vidos-id/openid4vc-issuer-cli`](packages/issuer-cli/) | Terminal client for `openid4vc-issuer-web-server` |
+| [`@vidos-id/openid4vc-wallet-cli`](packages/wallet-cli/) | Hold credentials and create OpenID4VP presentations |
+| [`@vidos-id/openid4vc-issuer`](packages/issuer/) | Issuer library used by the CLI and Bun consumers |
+| [`@vidos-id/openid4vc-wallet`](packages/wallet/) | Wallet library used by the CLI and Bun consumers |
+| [`@vidos-id/openid4vc-cli-common`](packages/cli-common/) | Shared CLI utilities published for the CLI packages |
 
 ## Install
 
@@ -46,16 +46,16 @@ Install the libraries with your preferred package manager:
 
 ```bash
 # bun
-bun add @vidos-id/wallet @vidos-id/issuer
+bun add @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 
 # npm
-npm install @vidos-id/wallet @vidos-id/issuer
+npm install @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 
 # pnpm
-pnpm add @vidos-id/wallet @vidos-id/issuer
+pnpm add @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 
 # yarn
-yarn add @vidos-id/wallet @vidos-id/issuer
+yarn add @vidos-id/openid4vc-wallet @vidos-id/openid4vc-issuer
 ```
 
 ### GitHub CLI Releases
@@ -63,27 +63,27 @@ yarn add @vidos-id/wallet @vidos-id/issuer
 Download the latest release assets:
 
 ```bash
-# wallet-cli
-curl -L -o wallet-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/wallet-cli.js
-chmod +x wallet-cli
+# openid4vc-wallet
+curl -L -o openid4vc-wallet https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-wallet.js
+chmod +x openid4vc-wallet
 
-# issuer-cli
-curl -L -o issuer-cli https://github.com/vidos-id/oid4vp-cli-utils/releases/latest/download/issuer-cli.js
-chmod +x issuer-cli
+# openid4vc-issuer
+curl -L -o openid4vc-issuer https://github.com/vidos-id/openid4vc-tools/releases/latest/download/openid4vc-issuer.js
+chmod +x openid4vc-issuer
 ```
 
 Run them directly:
 
 ```bash
-./wallet-cli --help
-./issuer-cli --help
+./openid4vc-wallet --help
+./openid4vc-issuer --help
 ```
 
 Optional: install globally on your machine by moving them onto your `PATH`:
 
 ```bash
-mv wallet-cli ~/.local/bin/wallet-cli
-mv issuer-cli ~/.local/bin/issuer-cli
+mv openid4vc-wallet ~/.local/bin/openid4vc-wallet
+mv openid4vc-issuer ~/.local/bin/openid4vc-issuer
 ```
 
 These artifacts are built for Bun and do not require GitHub Packages registry configuration.
@@ -99,33 +99,33 @@ bun packages/issuer-cli/src/index.ts --help
 
 ## Quick Start
 
-Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. `issuer-cli` now works as a client of `issuer-web-server`, while `wallet-cli` keeps wallet-side receipt, storage, and presentation concerns. `wallet-cli receive` is the primary way to add credentials into a wallet.
+Use the CLIs for end-to-end flows rather than re-implementing protocol steps in agent code. `openid4vc-issuer` now works as a client of `openid4vc-issuer-web-server`, while `openid4vc-wallet` keeps wallet-side receipt, storage, and presentation concerns. `openid4vc-wallet receive` is the primary way to add credentials into a wallet.
 
 The minimal server-backed flow:
 
 ```bash
 # 1. Start the issuer web server
-bun run --filter '@vidos-id/issuer-web-server' dev
+bun run --filter '@vidos-id/openid4vc-issuer-web-server' dev
 
 # 2. Initialize a wallet
-./wallet-cli init --wallet-dir .demo/wallet
+./openid4vc-wallet init --wallet-dir .demo/wallet
 
 # 3. Sign into the issuer app from the terminal
-./issuer-cli auth signin --anonymous
+./openid4vc-issuer auth signin --anonymous
 
 # 4. Create a template
-./issuer-cli templates create \
+./openid4vc-issuer templates create \
   --name "PID" \
   --vct urn:eudi:pid:1 \
-  --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json)"
+  --claims "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-minimal.claims.json)"
 
 # 5. Create an issuance offer from that template
-./issuer-cli issuances create \
+./openid4vc-issuer issuances create \
   --template-id <template-id> \
   --claims '{"issuing_state":"demo"}'
 
 # 6. Redeem that offer with the wallet
-./wallet-cli receive \
+./openid4vc-wallet receive \
   --wallet-dir .demo/wallet \
   --offer 'openid-credential-offer://?...'
 ```
@@ -133,48 +133,48 @@ bun run --filter '@vidos-id/issuer-web-server' dev
 Both CLIs also support interactive mode by default when run with no subcommand:
 
 ```bash
-./issuer-cli
-./wallet-cli
+./openid4vc-issuer
+./openid4vc-wallet
 ```
 
 Then present it:
 
 ```bash
-./wallet-cli present \
+./openid4vc-wallet present \
   --wallet-dir .demo/wallet \
-  --request "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-basic-request.json)"
+  --request "$(curl -fsSL https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-basic-request.json)"
 ```
 
 Or from an `openid4vp://` authorization URL:
 
 ```bash
-./wallet-cli present \
+./openid4vc-wallet present \
   --wallet-dir .demo/wallet \
   --request 'openid4vp://authorize?client_id=https%3A%2F%2Fverifier.example&nonce=n-1&response_type=vp_token&dcql_query=...'
 ```
 
-See [`@vidos-id/issuer-cli`](packages/issuer-cli/) and [`@vidos-id/wallet-cli`](packages/wallet-cli/README.md) for full command reference.
+See [`@vidos-id/openid4vc-issuer-cli`](packages/issuer-cli/) and [`@vidos-id/openid4vc-wallet-cli`](packages/wallet-cli/README.md) for full command reference.
 
 ## Minimal OID4VCI
 
-Wallet-side offer redemption is exposed through `wallet-cli receive`, and that is the primary ingest path for credentials.
+Wallet-side offer redemption is exposed through `openid4vc-wallet receive`, and that is the primary ingest path for credentials.
 
 Example:
 
 ```bash
-wallet-cli receive \
+openid4vc-wallet receive \
   --wallet-dir .demo/wallet \
   --offer 'openid-credential-offer://?credential_offer=...'
 ```
 
-For supported inputs, behavior, and command options, see [`packages/wallet-cli/README.md`](packages/wallet-cli/README.md) or run `wallet-cli receive --help`.
+For supported inputs, behavior, and command options, see [`packages/wallet-cli/README.md`](packages/wallet-cli/README.md) or run `openid4vc-wallet receive --help`.
 
 ## Interactive Issuer Flow
 
-`issuer-cli` also supports an interactive menu-driven mode by default when you run it without a subcommand:
+`openid4vc-issuer` also supports an interactive menu-driven mode by default when you run it without a subcommand:
 
 ```bash
-./issuer-cli
+./openid4vc-issuer
 ```
 
 It can sign in, create templates, create issuance offers, inspect offer URIs, and update issuance status without having to remember every command flag.
@@ -194,11 +194,11 @@ The OID4VCI demo exercises by-value credential offers, metadata discovery, pre-a
 
 Reusable example payloads live in `examples/pid/` in this repo and can also be fetched from raw GitHub:
 
-- `pid-minimal.claims.json` - minimal PID-style SD-JWT VC claims - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-minimal.claims.json`
-- `pid-full.claims.json` - broader PID-style SD-JWT VC claims - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-full.claims.json`
-- `pid-basic-request.json` - basic PID DCQL request - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-basic-request.json`
-- `pid-address-request.json` - address-focused PID DCQL request - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-address-request.json`
-- `pid-basic.openid4vp.txt` - by-value `openid4vp://` authorization URL example - `https://raw.githubusercontent.com/vidos-id/oid4vp-cli-utils/main/examples/pid/pid-basic.openid4vp.txt`
+- `pid-minimal.claims.json` - minimal PID-style SD-JWT VC claims - `https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-minimal.claims.json`
+- `pid-full.claims.json` - broader PID-style SD-JWT VC claims - `https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-full.claims.json`
+- `pid-basic-request.json` - basic PID DCQL request - `https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-basic-request.json`
+- `pid-address-request.json` - address-focused PID DCQL request - `https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-address-request.json`
+- `pid-basic.openid4vp.txt` - by-value `openid4vp://` authorization URL example - `https://raw.githubusercontent.com/vidos-id/openid4vc-tools/main/examples/pid/pid-basic.openid4vp.txt`
 
 ## Validate
 
@@ -215,4 +215,4 @@ bun run lint
 - DCQL only, no Presentation Exchange
 - `openid4vp://` limited to by-value requests with `client_id`, `nonce`, and `dcql_query`
 - wallet trust store for verifiers/readers is out of scope
-- issuer web server owns issuer state and protocol endpoints; `issuer-cli` is only an app client
+- issuer web server owns issuer state and protocol endpoints; `openid4vc-issuer` is only an app client

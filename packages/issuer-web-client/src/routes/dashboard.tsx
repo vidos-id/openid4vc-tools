@@ -1,11 +1,14 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import type { IssuanceDetail, Template } from "@vidos-id/issuer-web-shared";
+import type {
+	IssuanceDetail,
+	Template,
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import {
 	ACTIVE_TOKEN_STATUS,
 	getTokenStatusLabel,
 	REVOKED_TOKEN_STATUS,
 	SUSPENDED_TOKEN_STATUS,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";

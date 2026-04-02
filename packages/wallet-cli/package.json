@@ -1,32 +1,32 @@
 {
-	"name": "@vidos-id/wallet-cli",
+	"name": "@vidos-id/openid4vc-wallet-cli",
 	"description": "CLI for dc+sd-jwt wallet storage and OpenID4VP presentation.",
 	"version": "0.9.1",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/vidos-id/oid4vp-cli-utils.git"
+		"url": "https://github.com/vidos-id/openid4vc-tools.git"
 	},
 	"type": "module",
 	"main": "./src/index.ts",
 	"module": "./src/index.ts",
 	"types": "./src/index.ts",
 	"bin": {
-		"wallet-cli": "./src/index.ts"
+		"openid4vc-wallet": "./src/index.ts"
 	},
 	"publishConfig": {
 		"registry": "https://npm.pkg.github.com",
 		"access": "public"
 	},
 	"scripts": {
-		"build": "bun build src/index.ts --target=bun --outdir=../../dist/wallet-cli --entry-naming=[name].js --define __CLI_VERSION__='\"'$npm_package_version'\"'",
+		"build": "bun build src/index.ts --target=bun --outdir=../../dist/openid4vc-wallet --entry-naming=[name].js --define __CLI_VERSION__='\"'$npm_package_version'\"'",
 		"check-types": "tsc --noEmit --project ../../tsconfig.json",
 		"test": "bun test --pass-with-no-tests"
 	},
 	"dependencies": {
-		"@vidos-id/cli-common": "workspace:*",
+		"@vidos-id/openid4vc-cli-common": "workspace:*",
 		"commander": "^14.0.3",
 		"inquirer": "^12.9.6",
 		"zod": "^4.3.6",
-		"@vidos-id/wallet": "workspace:*"
+		"@vidos-id/openid4vc-wallet": "workspace:*"
 	}
 }

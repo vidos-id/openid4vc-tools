@@ -1,5 +1,5 @@
-import type { StatusListRecord } from "@vidos-id/issuer";
-import { ACTIVE_TOKEN_STATUS } from "@vidos-id/issuer-web-shared";
+import type { StatusListRecord } from "@vidos-id/openid4vc-issuer";
+import { ACTIVE_TOKEN_STATUS } from "@vidos-id/openid4vc-issuer-web-shared";
 import { eq } from "drizzle-orm";
 import type { AppContext } from "../context.ts";
 import { statusLists } from "../db/schema.ts";

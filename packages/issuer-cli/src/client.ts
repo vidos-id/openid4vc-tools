@@ -1,4 +1,4 @@
-import { verbose } from "@vidos-id/cli-common";
+import { verbose } from "@vidos-id/openid4vc-cli-common";
 import {
 	ACTIVE_TOKEN_STATUS,
 	type CreateIssuanceInput,
@@ -18,7 +18,7 @@ import {
 	templateSchema,
 	type UpdateIssuanceStatusInput,
 	updateIssuanceStatusInputSchema,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import type { StoredSession } from "./schemas.ts";
 import {
 	appErrorResponseSchema,

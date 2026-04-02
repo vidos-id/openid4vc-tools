@@ -1,5 +1,5 @@
 {
-	"name": "@vidos-id/issuer-web-client",
+	"name": "@vidos-id/openid4vc-issuer-web-client",
 	"version": "0.8.0",
 	"type": "module",
 	"scripts": {
@@ -13,7 +13,7 @@
 		"@tailwindcss/vite": "^4.2.2",
 		"@tanstack/react-router": "^1.168.8",
 		"@tanstack/react-router-devtools": "^1.166.11",
-		"@vidos-id/issuer-web-shared": "workspace:*",
+		"@vidos-id/openid4vc-issuer-web-shared": "workspace:*",
 		"better-auth": "^1.5.6",
 		"clsx": "^2.1.1",
 		"hono": "^4.12.9",

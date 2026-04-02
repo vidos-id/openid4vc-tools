@@ -1,4 +1,7 @@
-import type { StoredCredentialRecord, WalletStorage } from "@vidos-id/wallet";
+import type {
+	StoredCredentialRecord,
+	WalletStorage,
+} from "@vidos-id/openid4vc-wallet";
 
 export class SelectedCredentialStorage implements WalletStorage {
 	constructor(

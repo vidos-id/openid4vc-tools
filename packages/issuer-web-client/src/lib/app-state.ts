@@ -1,4 +1,7 @@
-import type { IssuanceDetail, Template } from "@vidos-id/issuer-web-shared";
+import type {
+	IssuanceDetail,
+	Template,
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { api } from "./api.ts";
 
 export async function loadDashboardData() {

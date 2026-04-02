@@ -24,8 +24,8 @@ Update version in all `package.json` files (root + 5 packages under `packages/*`
 
 ```bash
 bun run check-types && bun test && bun run build
-bun dist/wallet-cli/index.js --help
-bun dist/issuer-cli/index.js --help
+bun dist/openid4vc-wallet/index.js --help
+bun dist/openid4vc-issuer/index.js --help
 ```
 
 ## 4. Commit and push
@@ -49,4 +49,4 @@ gh run list --limit 1
 gh release view v<version>
 ```
 
-Release workflow publishes `@vidos-id/*` packages to GitHub Packages and attaches `wallet-cli.js` and `issuer-cli.js` to the release.
+Release workflow publishes `@vidos-id/*` packages to GitHub Packages and attaches `openid4vc-wallet.js` and `openid4vc-issuer.js` to the release.

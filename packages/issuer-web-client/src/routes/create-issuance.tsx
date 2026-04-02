@@ -1,5 +1,8 @@
 import { useNavigate, useParams } from "@tanstack/react-router";
-import type { IssuanceDetail, Template } from "@vidos-id/issuer-web-shared";
+import type {
+	IssuanceDetail,
+	Template,
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { useEffect, useState } from "react";
 import { IssuanceForm } from "../components/issuance-form.tsx";
 import { PageShell } from "../components/layout.tsx";

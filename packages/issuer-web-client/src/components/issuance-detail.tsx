@@ -1,8 +1,8 @@
-import type { IssuanceDetail } from "@vidos-id/issuer-web-shared";
+import type { IssuanceDetail } from "@vidos-id/openid4vc-issuer-web-shared";
 import {
 	ACTIVE_TOKEN_STATUS,
 	getTokenStatusLabel,
-} from "@vidos-id/issuer-web-shared";
+} from "@vidos-id/openid4vc-issuer-web-shared";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import type { BadgeVariant } from "./ui/badge.tsx";

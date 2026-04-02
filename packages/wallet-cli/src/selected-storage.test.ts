@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import type { StoredCredentialRecord, WalletStorage } from "@vidos-id/wallet";
+import type {
+	StoredCredentialRecord,
+	WalletStorage,
+} from "@vidos-id/openid4vc-wallet";
 import { SelectedCredentialStorage } from "./selected-storage.ts";
 
 const selectedCredential: StoredCredentialRecord = {
