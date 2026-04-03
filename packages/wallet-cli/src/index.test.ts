@@ -956,6 +956,9 @@ describe("wallet-cli", () => {
 						walletDir,
 						request,
 					});
+					expect(submitted.preparedSubmission?.url).toBe(
+						"https://verifier.example/response",
+					);
 					expect(submitted.submitted).toBe(true);
 
 					const dryRun = await presentCredentialAction({
@@ -963,11 +966,77 @@ describe("wallet-cli", () => {
 						request,
 						dryRun: true,
 					});
+					expect(typeof dryRun.preparedSubmission?.body.get("vp_token")).toBe(
+						"string",
+					);
 					expect(dryRun.submitted).toBe(false);
 				},
 			);
 
 			expect(postCount).toBe(1);
+		} finally {
+			await rm(walletDir, { recursive: true, force: true });
+		}
+	});
+
+	test("present action supports injected local submission transport", async () => {
+		const walletDir = await mkdtemp(join(tmpdir(), "wallet-cli-transport-"));
+		try {
+			const storage = new FileSystemWalletStorage(walletDir);
+			const wallet = new Wallet(storage);
+			const issuer = await createIssuerFixture();
+			const holderKey = await wallet.getOrCreateHolderKey();
+
+			const credential = await issueDemoCredential({
+				issuer: issuer.issuer,
+				issuerPrivateJwk: issuer.privateJwk,
+				holderPublicJwk: holderKey.publicJwk as never,
+				vct: "https://example.com/PersonCredential",
+				claims: { given_name: "Ada" },
+				disclosureFrame: { _sd: ["given_name"] },
+				issuedAt: 1,
+			});
+
+			await importCredentialAction({
+				walletDir,
+				credential,
+			});
+
+			let transportCalls = 0;
+			const result = await presentCredentialAction({
+				walletDir,
+				request: JSON.stringify({
+					client_id: "https://verifier.example",
+					nonce: "nonce-1",
+					response_mode: "direct_post",
+					response_uri: "https://verifier.example/response",
+					dcql_query: {
+						credentials: [
+							{
+								id: "person_credential",
+								format: "dc+sd-jwt",
+								meta: {
+									vct_values: ["https://example.com/PersonCredential"],
+								},
+								claims: [{ path: ["given_name"] }],
+							},
+						],
+					},
+				}),
+				transport: async (submission: {
+					url: string;
+					body: URLSearchParams;
+				}) => {
+					transportCalls += 1;
+					expect(submission.url).toBe("https://verifier.example/response");
+					expect(typeof submission.body.get("vp_token")).toBe("string");
+					return Response.json({ redirect_uri: "http://localhost/done" });
+				},
+			});
+
+			expect(transportCalls).toBe(1);
+			expect(result.submitted).toBe(true);
+			expect(result.submission?.redirectUri).toBe("http://localhost/done");
 		} finally {
 			await rm(walletDir, { recursive: true, force: true });
 		}

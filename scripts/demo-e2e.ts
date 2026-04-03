@@ -8,7 +8,12 @@ import {
 	generateIssuerTrustMaterial,
 	jwkSchema,
 } from "../packages/issuer/src/index.ts";
-import { Wallet } from "../packages/wallet/src/index.ts";
+import {
+	createOpenId4VpAuthorizationResponse,
+	prepareOpenId4VpAuthorizationResponseSubmission,
+	submitPreparedOpenId4VpAuthorizationResponse,
+	Wallet,
+} from "../packages/wallet/src/index.ts";
 import { FileSystemWalletStorage } from "../packages/wallet-cli/src/storage.ts";
 
 async function createProofJwt(input: {
@@ -41,6 +46,8 @@ const demoClaims: ClaimSet = {
 const request = {
 	client_id: "https://verifier.example",
 	nonce: "demo-verifier-nonce",
+	response_mode: "direct_post" as const,
+	response_uri: "https://verifier.example/response",
 	dcql_query: {
 		credentials: [
 			{
@@ -54,6 +61,13 @@ const request = {
 		],
 	},
 };
+
+const verifierResponses: Array<{
+	url: string;
+	method: string;
+	headers: Record<string, string>;
+	body: Record<string, string>;
+}> = [];
 
 const workspace = await mkdtemp(join(tmpdir(), "openid4vc-toolsdemo-"));
 const outputDir = join(workspace, "demo-output");
@@ -126,6 +140,38 @@ const imported = await wallet.importCredential({
 });
 
 const presentation = await wallet.createPresentation(request);
+const authorizationResponse = createOpenId4VpAuthorizationResponse(
+	request,
+	presentation,
+);
+const preparedSubmission =
+	await prepareOpenId4VpAuthorizationResponseSubmission(
+		request,
+		authorizationResponse,
+	);
+const submission = await submitPreparedOpenId4VpAuthorizationResponse(
+	{
+		...preparedSubmission,
+		url: "http://127.0.0.1:3000/response",
+	},
+	{
+		transport: async (prepared) => {
+			const body = Object.fromEntries(prepared.body.entries());
+			verifierResponses.push({
+				url: prepared.url,
+				method: prepared.method,
+				headers: prepared.headers,
+				body,
+			});
+
+			if (body.vp_token !== presentation.vpToken) {
+				throw new Error("Verifier transport received an unexpected vp_token");
+			}
+
+			return Response.json({ redirect_uri: "http://localhost:3000/done" });
+		},
+	},
+);
 
 await writeFile(
 	join(outputDir, "issuer-trust.json"),
@@ -146,6 +192,23 @@ await writeFile(
 	JSON.stringify(presentation, null, 2),
 	"utf8",
 );
+await writeFile(
+	join(outputDir, "prepared-submission.json"),
+	JSON.stringify(
+		{
+			...preparedSubmission,
+			body: Object.fromEntries(preparedSubmission.body.entries()),
+		},
+		null,
+		2,
+	),
+	"utf8",
+);
+await writeFile(
+	join(outputDir, "verifier-responses.json"),
+	JSON.stringify(verifierResponses, null, 2),
+	"utf8",
+);
 
 const summary = {
 	workspace,
@@ -154,6 +217,9 @@ const summary = {
 	walletDir,
 	presentationKeys: Object.keys(presentation.dcqlPresentation),
 	vpTokenPreview: `${presentation.vpToken.slice(0, 80)}...`,
+	preparedSubmissionUrl: preparedSubmission.url,
+	transportedSubmissionUrl: verifierResponses[0]?.url,
+	redirectUri: submission.redirectUri,
 };
 
 process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);

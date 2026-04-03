@@ -43,13 +43,17 @@ This package is currently published as raw TypeScript and is intended for Bun-ba
 - `openid4vp://` authorization URL parsing for by-value DCQL requests
 - selective disclosure presentation building
 - KB-JWT holder binding
-- `direct_post` and `direct_post.jwt` authorization response submission
+- prepared `direct_post` and `direct_post.jwt` authorization response delivery
 
 ## Example
 
 ```ts
 import {
+  createOpenId4VpAuthorizationResponse,
   InMemoryWalletStorage,
+  parseOpenid4VpAuthorizationUrl,
+  prepareOpenId4VpAuthorizationResponseSubmission,
+  submitPreparedOpenId4VpAuthorizationResponse,
   Wallet,
   receiveCredentialFromOffer,
 } from "@vidos-id/openid4vc-wallet";
@@ -92,9 +96,11 @@ await receiveCredentialFromOffer(
 const status = await wallet.getCredentialStatus("credential-id");
 
 // Create a presentation from a DCQL request
-const presentation = await wallet.createPresentation({
+const presentationRequest = {
   client_id: "https://verifier.example",
   nonce: "nonce-123",
+  response_mode: "direct_post",
+  response_uri: "https://verifier.example/response",
   dcql_query: {
     credentials: [
       {
@@ -104,11 +110,52 @@ const presentation = await wallet.createPresentation({
       },
     ],
   },
-});
+};
+
+const presentation = await wallet.createPresentation(presentationRequest);
+
+const authorizationResponse = createOpenId4VpAuthorizationResponse(
+  presentationRequest,
+  presentation,
+);
+
+const preparedSubmission =
+  await prepareOpenId4VpAuthorizationResponseSubmission(
+    presentationRequest,
+    authorizationResponse,
+  );
+
+// Default path: submit exactly as prepared.
+await submitPreparedOpenId4VpAuthorizationResponse(preparedSubmission);
+
+// Local/e2e path: rewrite the destination or deliver in-process.
+await submitPreparedOpenId4VpAuthorizationResponse(
+  {
+    ...preparedSubmission,
+    url: "http://127.0.0.1:3000/response",
+  },
+  {
+    transport: async (submission) => {
+      const body = Object.fromEntries(submission.body.entries());
+      console.log(submission.url, body.vp_token);
+      return Response.json({ redirect_uri: "http://localhost:3000/done" });
+    },
+  },
+);
 
 // Parse an openid4vp:// authorization URL
-const request = Wallet.parseAuthorizationRequestUrl("openid4vp://authorize?...");
+const request = await parseOpenid4VpAuthorizationUrl("openid4vp://authorize?...");
 ```
+
+OID4VP response delivery flow:
+- `createOpenId4VpAuthorizationResponse(...)` builds the protocol response payload
+- `prepareOpenId4VpAuthorizationResponseSubmission(...)` builds the HTTP submission request
+- `submitPreparedOpenId4VpAuthorizationResponse(...)` sends the prepared request with either the default fetch transport or a caller-provided transport
+
+This keeps protocol construction in the wallet while letting callers:
+- inspect the exact outgoing request before submission
+- rewrite the destination URL for localhost or reverse-proxy setups
+- submit in-process during tests without standing up a network proxy
 
 Supported `openid4vp://` subset:
 - by-value only
@@ -144,7 +191,7 @@ Current limitations:
 ## See also
 
 - [`@vidos-id/openid4vc-issuer`](../issuer/) - issuer library for credential issuance
-- [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) - full programmatic flow using both libraries
+- [`scripts/demo-e2e.ts`](../../scripts/demo-e2e.ts) - full programmatic flow including prepared OID4VP submission with local transport rewriting
 
 ## Test
 

@@ -30,8 +30,9 @@ import {
 import {
 	createOpenId4VpAuthorizationResponse,
 	parseOpenid4VpAuthorizationUrl,
+	prepareOpenId4VpAuthorizationResponseSubmission,
 	resolveOpenId4VpRequest,
-	submitOpenId4VpAuthorizationResponse,
+	submitPreparedOpenId4VpAuthorizationResponse,
 } from "./openid4vp.ts";
 import { InMemoryWalletStorage } from "./storage.ts";
 import { Wallet } from "./wallet.ts";
@@ -699,7 +700,44 @@ describe("wallet", () => {
 		).rejects.toThrow("invalid_request_uri_method");
 	});
 
-	test("submits a direct_post authorization response", async () => {
+	test("prepares a direct_post authorization response submission", async () => {
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post",
+				response_uri: "https://verifier.example/response",
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
+
+		expect(submission).toMatchObject({
+			responseMode: "direct_post",
+			url: "https://verifier.example/response",
+			method: "POST",
+			headers: {
+				"content-type": "application/x-www-form-urlencoded",
+			},
+		});
+		expect(submission.body.get("vp_token")).toBe("vp-token-123");
+		expect(submission.body.get("state")).toBe("state-123");
+	});
+
+	test("submits a prepared direct_post authorization response with fetch", async () => {
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post",
+				response_uri: "https://verifier.example/response",
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
+
 		await withMockedFetch(
 			async (input, init) => {
 				expect(String(input)).toBe("https://verifier.example/response");
@@ -719,69 +757,234 @@ describe("wallet", () => {
 				);
 			},
 			async () => {
-				const result = await submitOpenId4VpAuthorizationResponse(
-					{
-						client_id: "https://verifier.example",
-						nonce: "nonce-123",
-						state: "state-123",
-						response_mode: "direct_post",
-						response_uri: "https://verifier.example/response",
-						dcql_query: { credentials: [] },
-					},
-					{ vp_token: "vp-token-123", state: "state-123" },
-				);
+				const result =
+					await submitPreparedOpenId4VpAuthorizationResponse(submission);
 
 				expect(result.status).toBe(200);
 				expect(result.redirectUri).toBe("https://verifier.example/done");
+				expect(result.url).toBe("https://verifier.example/response");
 			},
 		);
 	});
 
-	test("submits a direct_post.jwt authorization response", async () => {
+	test("prepares a direct_post.jwt authorization response submission", async () => {
 		const { privateKey, publicKey } = await generateKeyPair("RSA-OAEP-256", {
 			modulusLength: 2048,
 			extractable: true,
 		});
 		const publicJwk = await exportJWK(publicKey);
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post.jwt",
+				response_uri: "https://verifier.example/response",
+				client_metadata: {
+					jwks: { keys: [publicJwk as Record<string, unknown>] },
+				},
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
 
+		expect(submission.responseMode).toBe("direct_post.jwt");
+		expect(submission.body.has("response")).toBe(true);
+
+		const encrypted = submission.body.get("response");
+		if (!encrypted) {
+			throw new Error("Expected encrypted response");
+		}
+
+		const decrypted = await jwtDecrypt(encrypted, privateKey, {
+			audience: "https://verifier.example",
+		});
+		expect(decrypted.payload.vp_token).toBe("vp-token-123");
+		expect(decrypted.payload.state).toBe("state-123");
+	});
+
+	test("uses the injected transport instead of fetch", async () => {
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post",
+				response_uri: "https://verifier.example/response",
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
+
+		let fetchCalled = false;
 		await withMockedFetch(
-			async (_input, init) => {
-				const params = new URLSearchParams(String(init?.body));
-				const encrypted = params.get("response");
-				if (!encrypted) {
-					throw new Error("Expected encrypted response");
-				}
-
-				const decrypted = await jwtDecrypt(encrypted, privateKey, {
-					audience: "https://verifier.example",
-				});
-				expect(decrypted.payload.vp_token).toBe("vp-token-123");
-				expect(decrypted.payload.state).toBe("state-123");
-				return new Response(JSON.stringify({ ok: true }), {
-					status: 200,
-					headers: { "content-type": "application/json" },
-				});
+			async () => {
+				fetchCalled = true;
+				throw new Error("fetch should not be called");
 			},
 			async () => {
-				const result = await submitOpenId4VpAuthorizationResponse(
+				const result = await submitPreparedOpenId4VpAuthorizationResponse(
+					submission,
 					{
-						client_id: "https://verifier.example",
-						nonce: "nonce-123",
-						state: "state-123",
-						response_mode: "direct_post.jwt",
-						response_uri: "https://verifier.example/response",
-						client_metadata: {
-							jwks: { keys: [publicJwk as Record<string, unknown>] },
+						transport: async (prepared) => {
+							expect(prepared.url).toBe("https://verifier.example/response");
+							expect(prepared.body.get("vp_token")).toBe("vp-token-123");
+							return Response.json({ ok: true });
 						},
-						dcql_query: { credentials: [] },
 					},
-					{ vp_token: "vp-token-123", state: "state-123" },
 				);
 
 				expect(result.status).toBe(200);
-				expect(result.responseMode).toBe("direct_post.jwt");
 			},
 		);
+
+		expect(fetchCalled).toBe(false);
+	});
+
+	test("caller can rewrite the prepared destination URL", async () => {
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post",
+				response_uri: "https://verifier.example/response",
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
+
+		const rewrittenSubmission = {
+			...submission,
+			url: "http://127.0.0.1:3000/response",
+		};
+
+		const result = await submitPreparedOpenId4VpAuthorizationResponse(
+			rewrittenSubmission,
+			{
+				transport: async (prepared) => {
+					expect(prepared.url).toBe("http://127.0.0.1:3000/response");
+					expect(prepared.headers).toEqual(submission.headers);
+					expect(String(prepared.body)).toBe(String(submission.body));
+					return Response.json({ ok: true });
+				},
+			},
+		);
+
+		expect(result.url).toBe("http://127.0.0.1:3000/response");
+	});
+
+	test("supports local e2e-style in-process submission checks", async () => {
+		const submission = await prepareOpenId4VpAuthorizationResponseSubmission(
+			{
+				client_id: "https://verifier.example",
+				nonce: "nonce-123",
+				state: "state-123",
+				response_mode: "direct_post",
+				response_uri: "https://verifier.example/response",
+				dcql_query: { credentials: [] },
+			},
+			{ vp_token: "vp-token-123", state: "state-123" },
+		);
+
+		const result = await submitPreparedOpenId4VpAuthorizationResponse(
+			submission,
+			{
+				transport: async (prepared) => {
+					expect(prepared.method).toBe("POST");
+					expect(prepared.headers["content-type"]).toBe(
+						"application/x-www-form-urlencoded",
+					);
+					expect(prepared.body.get("vp_token")).toBe("vp-token-123");
+					expect(prepared.body.get("state")).toBe("state-123");
+					return Response.json({ redirect_uri: "http://localhost/done" });
+				},
+			},
+		);
+
+		expect(result.redirectUri).toBe("http://localhost/done");
+	});
+
+	test("runs a local end-to-end presentation flow with in-process verifier submission", async () => {
+		const storage = new InMemoryWalletStorage();
+		const wallet = new Wallet(storage);
+		const holderKey = await wallet.getOrCreateHolderKey();
+		const issuer = await createIssuerFixture();
+
+		const credential = await issueDemoCredential({
+			issuer: issuer.issuer,
+			issuerPrivateJwk: issuer.privateJwk,
+			holderPublicJwk: holderKey.publicJwk as never,
+			vct: "https://example.com/PersonCredential",
+			claims: {
+				given_name: "Ada",
+				address: { locality: "London", country: "UK" },
+			},
+			disclosureFrame: {
+				_sd: ["given_name"],
+				address: { _sd: ["locality", "country"] },
+			},
+			issuedAt: 1,
+		});
+
+		await wallet.importCredential({
+			credential,
+			issuer: {
+				issuer: issuer.issuer,
+				jwk: issuer.publicJwk as Record<string, unknown>,
+			},
+		});
+
+		const request = {
+			client_id: "https://verifier.example",
+			nonce: "nonce-456",
+			state: "state-456",
+			response_mode: "direct_post" as const,
+			response_uri: "https://verifier.example/response",
+			dcql_query: {
+				credentials: [
+					{
+						id: "person_credential",
+						format: "dc+sd-jwt",
+						meta: {
+							vct_values: ["https://example.com/PersonCredential"],
+						},
+						claims: [
+							{ path: ["given_name"] },
+							{ path: ["address", "locality"] },
+						],
+					},
+				],
+			},
+		};
+
+		const presentation = await wallet.createPresentation(request);
+		const authorizationResponse = createOpenId4VpAuthorizationResponse(
+			request,
+			presentation,
+		);
+		const preparedSubmission =
+			await prepareOpenId4VpAuthorizationResponseSubmission(
+				request,
+				authorizationResponse,
+			);
+
+		const result = await submitPreparedOpenId4VpAuthorizationResponse(
+			{
+				...preparedSubmission,
+				url: "http://127.0.0.1:3000/response",
+			},
+			{
+				transport: async (prepared) => {
+					expect(prepared.url).toBe("http://127.0.0.1:3000/response");
+					expect(prepared.body.get("state")).toBe("state-456");
+					expect(prepared.body.get("vp_token")).toBe(presentation.vpToken);
+					return Response.json({ redirect_uri: "http://localhost/done" });
+				},
+			},
+		);
+
+		expect(result.redirectUri).toBe("http://localhost/done");
 	});
 
 	test("creates a selective disclosure presentation with kb-jwt", async () => {

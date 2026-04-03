@@ -2,10 +2,12 @@ import { verbose } from "@vidos-id/openid4vc-cli-common";
 import {
 	createOpenId4VpAuthorizationResponse,
 	type OpenId4VpRequestInput,
+	type OpenId4VpResponseTransport,
 	parseOpenid4VpAuthorizationUrl,
+	prepareOpenId4VpAuthorizationResponseSubmission,
 	type QueryCredentialMatches,
 	resolveOpenId4VpRequest,
-	submitOpenId4VpAuthorizationResponse,
+	submitPreparedOpenId4VpAuthorizationResponse,
 	Wallet,
 	type WalletStorage,
 } from "@vidos-id/openid4vc-wallet";
@@ -35,17 +37,24 @@ export async function presentCredentialAction(rawOptions: unknown) {
 		request,
 		presentation,
 	);
-	const submission =
-		!options.dryRun &&
-		(request.response_mode === "direct_post" ||
-			request.response_mode === "direct_post.jwt")
-			? await submitOpenId4VpAuthorizationResponse(
+	const preparedSubmission =
+		request.response_mode === "direct_post" ||
+		request.response_mode === "direct_post.jwt"
+			? await prepareOpenId4VpAuthorizationResponseSubmission(
 					request,
 					authorizationResponse,
 				)
 			: undefined;
+	const submission =
+		!options.dryRun && preparedSubmission
+			? await submitPreparedOpenId4VpAuthorizationResponse(preparedSubmission, {
+					transport: (rawOptions as { transport?: OpenId4VpResponseTransport })
+						.transport,
+				})
+			: undefined;
 	return {
 		...presentation,
+		preparedSubmission,
 		submitted: submission !== undefined,
 		submission,
 	};

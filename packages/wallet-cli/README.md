@@ -136,6 +136,12 @@ Create a DCQL-based OpenID4VP presentation from wallet credentials.
 openid4vc-wallet present \
   --wallet-dir ./my-wallet \
   --request 'openid4vp://authorize?...'
+
+openid4vc-wallet present \
+  --wallet-dir ./my-wallet \
+  --request 'openid4vp://authorize?...' \
+  --dry-run \
+  --output json
 ```
 
 ## Global options
@@ -150,7 +156,8 @@ openid4vc-wallet present \
 
 - `receive` is the primary credential-ingest path
 - `import` is a local raw-credential fallback
-- `present` auto-submits `direct_post` and `direct_post.jwt` responses unless `--dry-run` is set
+- `present` prepares `direct_post` and `direct_post.jwt` submissions automatically, then submits them unless `--dry-run` is set
+- with `present --dry-run --output json`, the result includes `preparedSubmission` so callers can inspect the target URL, headers, and form body without sending anything
 - when multiple credentials match a query, `present` prompts interactively in a TTY or returns an error with a `--credential-id` suggestion in non-interactive environments
 - only by-value DCQL requests are supported
 - `show` automatically fetches, verifies, and decodes IETF status list JWTs for stored credentials that include a `status.status_list` reference
